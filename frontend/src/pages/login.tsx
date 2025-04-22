@@ -8,7 +8,7 @@ import { setAuthenticatedUser } from '../utils/sessionUtils';
 import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-  const [userID, setUserID] = useState<string>('');
+  const [userID] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [loginMethod, setLoginMethod] = useState<'indexeddb' | 'file' | 'metamask'>('indexeddb');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -314,45 +314,6 @@ const Login = () => {
           </div>
         </div>
         
-        {loginMethod === 'indexeddb' && (
-          <div className="space-y-4">
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-300">
-                ID de Usuario:
-              </label>
-              <input
-                type="text"
-                placeholder="ID de Usuario"
-                value={userID}
-                onChange={(e) => {
-                  setUserID(e.target.value);
-                  setError(null);
-                }}
-                className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  error && error.includes(userID) ? 'border-red-500' : 'border-gray-600'
-                }`}
-              />
-            </div>
-            
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-gray-300">
-                Contraseña:
-              </label>
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setError(null);
-                }}
-                className={`w-full px-3 py-2 bg-gray-700 border rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                  error && error.includes('Contraseña') ? 'border-red-500' : 'border-gray-600'
-                }`}
-              />
-            </div>
-          </div>
-        )}
         
         {loginMethod === 'file' && (
           <div className="space-y-4">
