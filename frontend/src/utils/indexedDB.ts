@@ -1,5 +1,5 @@
 // src/utils/indexedDB.ts
-
+/*
 const dbName = 'blackjackDB';
 const storeName = 'certificates';
 
@@ -17,29 +17,12 @@ const openDB = () => {
   });
 };
 
-export const saveCertificate = async (certificate: any) => {
-  const db = await openDB();
-  const transaction = db.transaction(storeName, 'readwrite');
-  const store = transaction.objectStore(storeName);
-  store.put(certificate);
-};
-
-export const getCertificate = async (userID: string) => {
-  const db = await openDB();
-  const transaction = db.transaction(storeName, 'readonly');
-  const store = transaction.objectStore(storeName);
-  return new Promise<any>((resolve, reject) => {
-    const request = store.get(userID);
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject('Error getting certificate');
-  });
-};
 
 // Nueva función para verificar si un usuario ya existe
 export const userExists = async (userID: string): Promise<boolean> => {
   try {
     const certificate = await getCertificate(userID);
-    return !!certificate; // Retorna true si el certificado existe, false si es null o undefined
+    return !!certificate;
   } catch (error) {
     console.error('Error verificando si el usuario existe:', error);
     return false;
@@ -62,3 +45,4 @@ export const getAllUsers = async (): Promise<string[]> => {
     request.onerror = () => reject('Error obteniendo lista de usuarios');
   });
 };
+*/
