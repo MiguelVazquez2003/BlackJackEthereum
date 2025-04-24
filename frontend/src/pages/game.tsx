@@ -100,7 +100,6 @@ const startNewGame = () => {
       // Verificar y registrar el certificado del jugador
       const isCertificateValid = await checkAndRegisterCertificate(
         userName,
-        account,
         setMessage
       );
       if (!isCertificateValid) {
