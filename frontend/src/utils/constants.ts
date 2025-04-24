@@ -1,4 +1,16 @@
-// src/contracts/abi.ts
+// Constantes globales del juego
+export const BLACKJACK = 21;
+export const DEALER_MIN = 17;
+
+
+declare global {
+  interface Window {
+    ethereum: any;
+  }
+}
+
+// Dirección del contrato en la red de prueba Sepolia
+export const BLACKJACK_CONTRACT_ADDRESS = import.meta.env.VITE_BLACKJACK_CONTRACT_ADDRESS;
 
 // ABI del contrato Blackjack
 export const BLACKJACK_ABI =
