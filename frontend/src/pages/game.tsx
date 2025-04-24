@@ -1,24 +1,23 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAuthenticatedUser } from "../utils/sessionUtils";
-import { getCertificate } from "../utils/indexedDB";
 import { useMetaMask } from "../hooks/useMetaMask";
 import Hand from "../components/Hand";
 import Balance from "../components/Balance";
 import {
   checkAndRegisterCertificate,
   getMaxBet,
-  recordGameResult,
+  recordGame,
   signGameResult,
 } from "../services/blackjackService";
 import { GameResult } from "../interfaces/IPlayer";
 import {
-  getGameResult,
-  dealInitialCards as dealCardsService,
-  handleDealerTurn as handleDealerTurnService,
+  dealInitialCards,
+  calculateHandTotal,
+  handleDealerTurn,
   startNewGameState,
   addRandomCardToHand,
-  calculateHandTotal,
+  getGameResult,
 } from "../services/gameService";
 
 const Game = () => {
@@ -66,34 +65,23 @@ const Game = () => {
       if (userId) {
         setIsAuthenticated(true);
         setUserName(userId);
-
-        try {
-          const certificate = await getCertificate(userId);
-          if (certificate) {
-            // Aquí podrías hacer algo con el certificado si es necesario
-          }
-        } catch (error) {
-          console.error("Error al obtener el certificado:", error);
-        }
-      } else {
-        // Si no está autenticado, redirigir a inicio
-        navigate("/");
       }
     };
 
     checkAuthentication();
   }, [navigate]);
 
-  // Lógica del juego
-  const startNewGame = () => {
-    const newState = startNewGameState();
-    setDealerCards(newState.dealerCards);
-    setPlayerCards(newState.playerCards);
-    setGameResult(newState.gameResult);
-    //setGameState(newState.gameState);
-    setMessage(newState.message);
-  };
+const startNewGame = () => {
+  const newState = startNewGameState();
+  setDealerCards(newState.dealerCards);
+  setPlayerCards(newState.playerCards);
+  setGameResult(newState.gameResult);
+  setMessage(newState.message);
 
+  setGameState("betting");
+  };
+  
+  
   const placeBet = async () => {
     if (!account) {
       setMessage("Debes conectar tu wallet de MetaMask para apostar");
@@ -122,7 +110,7 @@ const Game = () => {
       }
 
       // Iniciar el juego después de verificar los requisitos
-      dealInitialCards();
+      dealInitialCardsHandler();
       setGameState("playing");
       setMessage(null);
     } catch (error) {
@@ -133,18 +121,18 @@ const Game = () => {
     }
   };
 
-  const dealInitialCards = () => {
+  const dealInitialCardsHandler = () => {
     setIsDealing(true);
 
     const { dealerCards: newDealerCards, playerCards: newPlayerCards } =
-      dealCardsService();
+      dealInitialCards();
 
     setDealerCards(newDealerCards);
     setPlayerCards(newPlayerCards);
 
     const playerTotal = calculateHandTotal(newPlayerCards);
     if (playerTotal === 21) {
-      const { dealerCards, result } = handleDealerTurnService(
+      const { dealerCards, result } = handleDealerTurn(
         newPlayerCards,
         newDealerCards
       );
@@ -156,54 +144,56 @@ const Game = () => {
     setIsDealing(false);
   };
 
-  const handleHit = () => {
-    const updatedPlayerCards = addRandomCardToHand(playerCards);
-    setPlayerCards(updatedPlayerCards);
+const handleHit = () => {
+  const updatedPlayerCards = addRandomCardToHand(playerCards);
+  setPlayerCards(updatedPlayerCards);
 
-    const playerTotal = calculateHandTotal(updatedPlayerCards);
-    if (playerTotal > 21) {
-      setGameResult("¡Te has pasado! Pierdes.");
-      setGameState("gameOver");
-      processPayment("Pierdes.");
-    } else if (playerTotal === 21) {
-      handleStand();
-    }
-  };
-
-  const handleStand = () => {
-    const { dealerCards: newDealerCards, result } = handleDealerTurnService(
-      playerCards,
-      dealerCards
-    );
-    setDealerCards(newDealerCards);
-    setGameResult(result);
+  const playerTotal = calculateHandTotal(updatedPlayerCards);
+  if (playerTotal > 21) {
+    setGameResult("¡Te has pasado! Pierdes.");
     setGameState("gameOver");
-    processPayment(result);
-  };
 
-  const processPayment = async (result: string) => {
+    // Pasar los totales correctos para procesar el pago
+    processPayment(playerTotal, calculateHandTotal(dealerCards));
+  } else if (playerTotal === 21) {
+    handleStand();
+  }
+};
+
+const handleStand = () => {
+  const {
+    dealerCards: newDealerCards,
+    result,
+    playerTotal,
+    dealerTotal,
+  } = handleDealerTurn(playerCards, dealerCards);
+  setDealerCards(newDealerCards);
+  setGameResult(result);
+  setGameState("gameOver");
+
+  // Usar los totales devueltos por handleDealerTurn
+  processPayment(playerTotal, dealerTotal);
+};
+
+
+  const processPayment = async (playerTotal: number, dealerTotal: number) => {
     if (!account) {
       setMessage("Necesitas conectar tu wallet para procesar el pago");
       return;
     }
 
     try {
-      // Determinar el resultado del juego para el contrato
-      let gameResultValue: GameResult;
-
-      if (result.includes("Ganas")) {
-        gameResultValue = 1; // Jugador gana
-      } else if (result.includes("Empate")) {
-        gameResultValue = 0; // Empate
-      } else {
-        gameResultValue = -1; // Jugador pierde
-      }
-
       // Convertir la puntuación a un formato que entienda el contrato
       const contractResult: GameResult = getGameResult(
-        calculateHandTotal(playerCards),
-        calculateHandTotal(dealerCards)
+        playerTotal,
+        dealerTotal
       );
+
+      // Si es empate, no realizar ninguna transacción
+      if (contractResult === 0) {
+        setMessage("Empate. No se realiza ninguna transacción.");
+        return;
+      }
 
       // Firmar el resultado
       setMessage("Firmando el resultado del juego...");
@@ -216,7 +206,7 @@ const Game = () => {
       setMessage("Procesando transacción en blockchain...");
 
       // Registrar el resultado en el contrato
-      await recordGameResult(contractResult, betAmount, signature);
+      await recordGame(contractResult, betAmount, signature);
 
       // Actualizar el estado para refrescar el saldo después de la transacción
       setBalanceRefreshTrigger((prev) => prev + 1);
@@ -232,10 +222,6 @@ const Game = () => {
         setMessage(
           `¡Felicidades! Has ganado ${winAmount} ETH. El pago se ha procesado en la blockchain.`
         );
-      } else if (contractResult === 0) {
-        setMessage(
-          "Empate. Tu apuesta de " + betAmount + " ETH ha sido devuelta."
-        );
       } else {
         setMessage("Has perdido tu apuesta de " + betAmount + " ETH.");
       }
@@ -244,6 +230,7 @@ const Game = () => {
       setMessage(`Error al procesar el pago: ${(error as Error).message}`);
     }
   };
+
 
 
   const playerTotal = calculateHandTotal(playerCards);
@@ -433,7 +420,6 @@ const Game = () => {
             </div>
           )}
         </div>
-
         {/* Sección de MetaMask */}
         <div className="bg-gray-800 rounded-lg shadow-xl p-6 mb-6">
           <h2 className="text-xl font-bold text-white mb-4">
@@ -495,6 +481,25 @@ const Game = () => {
           </div>
         </div>
 
+
+        <button
+          onClick={() => navigate("/stats")}
+          className="text-blue-400 hover:text-blue-300 flex items-center"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-1"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+          >
+            <path
+              fillRule="evenodd"
+              d="M3 3a1 1 0 000 2h10a1 1 0 100-2H3zm0 4a1 1 0 000 2h6a1 1 0 100-2H3zm0 4a1 1 0 100 2h8a1 1 0 100-2H3z"
+              clipRule="evenodd"
+            />
+          </svg>
+          Mis Estadísticas
+        </button>
         <p className="text-center text-xs text-gray-500 mt-6">
           BlackJack Ethereum v1.0 • Desarrollado con tecnología blockchain •{" "}
           {new Date().getFullYear()}

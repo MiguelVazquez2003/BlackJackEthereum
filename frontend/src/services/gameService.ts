@@ -1,10 +1,14 @@
-import { BLACKJACK} from "../utils/constants";
+import { BLACKJACK } from "../utils/constants";
 
 // Convertir resultado del juego al formato del contrato
 export function getGameResult(
   playerScore: number,
   dealerScore: number
 ): number {
+
+    console.log("Resultado del juego: ", playerScore, dealerScore);
+
+
   // Si el jugador se pasó de 21, pierde
   if (playerScore > BLACKJACK) {
     return -1;
@@ -16,17 +20,22 @@ export function getGameResult(
   }
 
   // Comparar puntuaciones
-    if (playerScore > dealerScore) {
-      console.log("Jugador gana");
+  if (playerScore > dealerScore) {
+    console.log("Jugador gana");
     return 1; // Jugador gana
-    } else if (playerScore < dealerScore) {
-        console.log("Jugador pierde");
+  } else if (playerScore < dealerScore) {
+    console.log("Jugador pierde");
     return -1; // Jugador pierde
-    } else {
-        console.log("Empate");
+  } else {
+    console.log("Empate");
     return 0; // Empate
   }
 }
+
+
+
+
+
 
 // Calcular el valor de una mano
 export function calculateHandValue(cards: string[]): number {
@@ -100,17 +109,27 @@ export function calculateHandTotal(cards: number[]): number {
 export function handleDealerTurn(
   updatedPlayerCards: number[],
   currentDealerCards: number[]
-): { dealerCards: number[]; result: string } {
+): { dealerCards: number[]; result: string; playerTotal: number; dealerTotal: number } {
   const newDealerCards = [...currentDealerCards];
   let dealerTotal = calculateHandTotal(newDealerCards);
+
+  console.log("Cartas iniciales del dealer:", newDealerCards);
+  console.log("Total inicial del dealer:", dealerTotal);
 
   while (dealerTotal < 17) {
     const newCard = Math.floor(Math.random() * 13) + 1;
     newDealerCards.push(newCard);
     dealerTotal = calculateHandTotal(newDealerCards);
+
+    console.log("Nueva carta del dealer:", newCard);
+    console.log("Cartas actuales del dealer:", newDealerCards);
+    console.log("Total actual del dealer:", dealerTotal);
   }
 
   const playerTotal = calculateHandTotal(updatedPlayerCards);
+
+  console.log("Cartas del jugador:", updatedPlayerCards);
+  console.log("Total del jugador:", playerTotal);
 
   let result: string;
   if (playerTotal > 21) {
@@ -125,7 +144,9 @@ export function handleDealerTurn(
     result = "Pierdes.";
   }
 
-  return { dealerCards: newDealerCards, result };
+  console.log("Resultado del juego:", result);
+
+  return { dealerCards: newDealerCards, result, playerTotal, dealerTotal };
 }
 
 export function startNewGameState() {

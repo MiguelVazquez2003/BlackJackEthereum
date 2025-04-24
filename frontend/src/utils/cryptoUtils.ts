@@ -31,7 +31,7 @@ export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
 export const exportPublicKeyAsPEM = async (publicKey: CryptoKey): Promise<string> => {
   const exported = await window.crypto.subtle.exportKey('spki', publicKey);
   const b64 = arrayBufferToBase64(exported);
-  return `-----BEGIN PUBLIC KEY-----\n${b64.match(/.{1,64}/g)?.join('\n')}\n-----END PUBLIC KEY-----`;
+  return `${b64.match(/.{1,64}/g)?.join('\n')}`;
 };
 
 export const exportPrivateKeyAsJSON = async (
