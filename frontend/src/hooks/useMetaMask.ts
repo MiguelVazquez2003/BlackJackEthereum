@@ -7,8 +7,8 @@ import {
   registerPlayerCertificate,
   getMaxBet,
   signGameResult,
-  recordGameResult,
   getPlayerStats,
+  recordGame,
 } from "../services/blackjackService";
 import {
   connectToMetaMask,
@@ -170,7 +170,7 @@ export const useMetaMask = () => {
     registerCertificate: registerPlayerCertificate,
     getMaxBet,
     signGameResult,
-    recordGameResult,
+    recordGame,
     getPlayerStats,
   };
 };

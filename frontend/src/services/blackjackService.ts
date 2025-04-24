@@ -1,8 +1,6 @@
 import { ethers } from "ethers";
 import { BLACKJACK_ABI, BLACKJACK_CONTRACT_ADDRESS } from "../utils/constants";
-import { IUserCertificate } from "../interfaces/IUserCertificate";
-import { GameResult, PlayerStats } from "../interfaces/IPlayer";
-import { getCertificate } from "../utils/indexedDB";
+import { Game, GameResult, PlayerStats } from "../interfaces/IPlayer";
 
 // Función para obtener la instancia del contrato con un proveedor de solo lectura
 export function getBlackjackContractReadOnly() {
@@ -23,7 +21,7 @@ export async function getBlackjackContractWithSigner() {
 }
 
 // Función para registrar un certificado de jugador
-export async function registerPlayerCertificate(certificate: IUserCertificate) {
+export async function registerPlayerCertificate(certificate: any) {
   try {
     const contract = await getBlackjackContractWithSigner();
 
@@ -83,8 +81,8 @@ export async function signGameResult(
   }
 }
 
-// Función para registrar el resultado de un juego y enviar/recibir ETH
-export async function recordGameResult(
+// Función para registrar el resultado de una partida y almacenar estadísticas
+export async function recordGame(
   result: GameResult,
   betAmount: string, // en ETH
   signature: string
@@ -103,17 +101,12 @@ export async function recordGameResult(
     }
 
     console.log(
-      `Llamando a recordGameResult con resultado ${result}, apuesta ${betAmount} ETH`
+      `Llamando a recordGame con resultado ${result}, apuesta ${betAmount} ETH`
     );
     console.log(`Opciones de transacción:`, options);
 
-    // Asegurarse de que options se pasa correctamente como último parámetro
-    const tx = await contract.recordGameResult(
-      signature,
-      result,
-      betInWei,
-      options
-    );
+    // Llamar a la función recordGame del contrato
+    const tx = await contract.recordGame(signature, result, betInWei, options);
 
     console.log(`Transacción enviada: ${tx.hash}`);
     const receipt = await tx.wait();
@@ -121,7 +114,7 @@ export async function recordGameResult(
 
     return receipt;
   } catch (error) {
-    console.error("Error al registrar el resultado del juego:", error);
+    console.error("Error al registrar la partida:", error);
     throw error;
   }
 }
@@ -148,51 +141,72 @@ export async function getPlayerStats(
 // Función para verificar y registrar un certificado
 export async function checkAndRegisterCertificate(
   account: string,
-  userName: string,
   setMessage: (msg: string) => void
 ): Promise<boolean> {
   if (!account) return false;
 
   try {
-    const certificate = await getCertificate(userName);
-    if (!certificate) {
-      setMessage(
-        "No tienes un certificado registrado. Ve a tu perfil para registrarlo."
-      );
-      return false;
+    const contract = getBlackjackContractReadOnly();
+
+    // Verificar si el certificado ya está registrado en la blockchain
+    const isRegistered = await contract.isCertificateRegistered(account);
+    if (isRegistered) {
+      setMessage("Certificado ya registrado en la blockchain.");
+      return true;
     }
 
     setMessage("Registrando tu certificado en la blockchain...");
 
+    // Crear un certificado seguro
     const secureCertificate = {
-      ...certificate,
-      publicKey: certificate.publicKey || {},
-      userID: certificate.userID || account,
-      date: certificate.date || new Date().toISOString(),
-      privateKey: undefined,
+      userID: account,
+      date: new Date().toISOString(),
     };
 
+    // Registrar el certificado en la blockchain
     await registerPlayerCertificate(secureCertificate);
     setMessage("Certificado registrado correctamente.");
     return true;
   } catch (error: any) {
-    if (
-      error.message &&
-      error.message.includes("execution reverted") &&
-      !error.message.includes("Jugador no registrado")
-    ) {
-      console.log("El certificado probablemente ya está registrado");
-      return true;
-    }
-
     console.error("Error al registrar el certificado:", error);
-    const errorMsg = error.message?.includes("invalid string value")
-      ? "Error en el formato del certificado. Intenta actualizar tu certificado en la página de perfil."
+    const errorMsg = error.message?.includes("execution reverted")
+      ? "Error en la lógica del contrato. Verifica tu conexión o intenta nuevamente."
       : `Error al registrar el certificado: ${error.message}`;
 
     setMessage(errorMsg);
     return false;
   }
 }
+
+export async function userExists(userID: string): Promise<boolean> {
+  if (!userID) return false;
+
+  try {
+    const contract = getBlackjackContractReadOnly();
+    const exists = await contract.isCertificateRegistered(userID);
+    return exists;
+  } catch (error) {
+    console.error("Error al verificar si el usuario existe:", error);
+    return false;
+  }
+}
+
+export async function getPlayerGames(playerAddress: string): Promise<Game[]> {
+  try {
+    const contract = getBlackjackContractReadOnly();
+    const games = await contract.getPlayerGames(playerAddress);
+
+    // Mapear
+    return games.map((game: any) => ({
+      timestamp: new Date(Number(game.timestamp) * 1000).toLocaleString(),
+      result: game.result,
+      bet: ethers.formatEther(game.bet), // Convertir de wei a ether
+    }));
+  } catch (error) {
+    console.error("Error al obtener las partidas del jugador:", error);
+    throw error;
+  }
+}
+
 
 export { BLACKJACK_ABI };
