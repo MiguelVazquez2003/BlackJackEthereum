@@ -1,9 +1,9 @@
-export interface TCard{
+export interface ICard{
     rank: string,
     suit: string
 }
 
-export interface THand{
-    cards: TCard[]
+export interface IHand{
+    cards: ICard[]
 }
 

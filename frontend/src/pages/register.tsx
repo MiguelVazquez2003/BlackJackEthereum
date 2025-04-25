@@ -103,9 +103,10 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md mx-auto bg-gray-800 rounded-xl shadow-md overflow-hidden p-6 space-y-6">
-        <h1 className="text-xl font-bold text-center text-white">Registro</h1>
+    <div className="min-h-screen bg-casinogreen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-16">
+        <h1 className="font-title font-bold text-8xl text-white">Blackjack</h1>
+      <form className="max-w-md mx-auto bg-secondarygreen rounded-xl shadow-md overflow-hidden p-6 space-y-6">
+        <h2 className="text-xl font-bold text-center text-white">Registro</h2>
 
         {error && (
           <div className="bg-red-900/40 border border-red-700/50 text-red-200 px-4 py-3 rounded-lg">
@@ -119,14 +120,14 @@ const Register = () => {
           className={`w-full px-4 py-2 rounded-lg font-medium transition-colors ${
             account
               ? "bg-green-600 hover:bg-green-700"
-              : "bg-blue-600 hover:bg-blue-700"
+              : "bg-blue-600 hover:bg-blue-700 hover:cursor-pointer"
           } text-white ${isLoading ? "opacity-70 cursor-not-allowed" : ""}`}
         >
           {account ? "Conectado a MetaMask" : "Conectar con MetaMask"}
         </button>
 
         {account && (
-          <div className="p-3 bg-gray-700 rounded-lg break-all text-sm text-gray-300">
+          <div className="p-3 bg-black/60 rounded-lg break-all text-sm text-gray-300">
             <span className="font-semibold block mb-1">Dirección:</span>{" "}
             {account}
           </div>
@@ -141,7 +142,7 @@ const Register = () => {
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 bg-black/60 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
@@ -151,7 +152,7 @@ const Register = () => {
           className={`w-full px-4 py-2 font-medium rounded-lg transition-colors ${
             isLoading
               ? "bg-gray-500 cursor-not-allowed"
-              : "bg-green-600 hover:bg-green-700 text-white"
+              : "bg-green-600 hover:bg-green-700 text-white hover:cursor-pointer"
           }`}
         >
           {isLoading ? "Registrando..." : "Registrar"}
@@ -160,12 +161,12 @@ const Register = () => {
         <div className="text-center pt-2">
           <button
             onClick={() => navigate("/login")}
-            className="text-sm text-blue-400 hover:text-blue-300"
+            className="text-sm text-blue-400 hover:text-blue-300 hover:cursor-pointer"
           >
             ¿Ya tienes cuenta? Inicia sesión
           </button>
         </div>
-      </div>
+      </form>
     </div>
   );
 };

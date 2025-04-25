@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+@font-face {
+  font-family: IBMPlexSerif;
+  font-style: bold;
+  src: url("assets/IBMPlexSerif-Bold.woff2") format("woff2");
+}
+
+@theme {
+  --color-casinogreen: #3E523F;
+  --color-secondarygreen: #1F291F;
+  --font-title:"IBMPlexSerif","system-ui";
+}
+
 :root {
     --spriteColumns: 15;
     --spriteRows: 4;
@@ -23,4 +35,8 @@
 
 body{
     background-color: #3E523F;
+}
+
+.mybutton{
+  
 }

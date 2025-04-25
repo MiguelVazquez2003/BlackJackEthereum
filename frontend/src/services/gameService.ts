@@ -1,3 +1,4 @@
+import { ICard, IHand } from "../types";
 import { BLACKJACK } from "../utils/constants";
 
 // Convertir resultado del juego al formato del contrato
@@ -32,19 +33,14 @@ export function getGameResult(
   }
 }
 
-
-
-
-
-
 // Calcular el valor de una mano
-export function calculateHandValue(cards: string[]): number {
+export function calculateHandValue(cards: IHand): number {
   let value = 0;
   let aces = 0;
 
-  for (const card of cards) {
+  for (const card of cards.cards) {
     // Extraer solo el valor de la carta (sin el palo)
-    const cardValue = card.slice(0, -1);
+    const cardValue = card.rank;
 
     if (cardValue === "A") {
       value += 11;
@@ -68,65 +64,41 @@ export function calculateHandValue(cards: string[]): number {
 // Mover funciones del juego desde game.tsx
 
 export function dealInitialCards(): {
-  dealerCards: number[];
-  playerCards: number[];
+  dealerCards: IHand;
+  playerCards: IHand;
 } {
-  const newDealerCards = [
-    Math.floor(Math.random() * 13) + 1,
-    Math.floor(Math.random() * 13) + 1,
-  ];
+  const newDealerCards: IHand = {
+    cards: [getRandomCard(), getRandomCard()]
+  };
 
-  const newPlayerCards = [
-    Math.floor(Math.random() * 13) + 1,
-    Math.floor(Math.random() * 13) + 1,
-  ];
+  const newPlayerCards: IHand = {
+    cards: [getRandomCard(), getRandomCard()]
+  };
 
   return { dealerCards: newDealerCards, playerCards: newPlayerCards };
 }
 
-export function calculateHandTotal(cards: number[]): number {
-  let total = 0;
-  let aces = 0;
-
-  for (const card of cards) {
-    if (card === 1) {
-      aces += 1;
-      total += 11;
-    } else {
-      total += Math.min(card, 10);
-    }
-  }
-
-  // Ajustar los ases si es necesario
-  while (total > 21 && aces > 0) {
-    total -= 10;
-    aces -= 1;
-  }
-
-  return total;
-}
-
 export function handleDealerTurn(
-  updatedPlayerCards: number[],
-  currentDealerCards: number[]
-): { dealerCards: number[]; result: string; playerTotal: number; dealerTotal: number } {
-  const newDealerCards = [...currentDealerCards];
-  let dealerTotal = calculateHandTotal(newDealerCards);
+  updatedPlayerCards: IHand,
+  currentDealerCards: IHand
+): { dealerCards: IHand; result: string; playerTotal: number; dealerTotal: number } {
+  const newDealerCards:IHand = currentDealerCards;
+  let dealerTotal = calculateHandValue(newDealerCards);
 
   console.log("Cartas iniciales del dealer:", newDealerCards);
   console.log("Total inicial del dealer:", dealerTotal);
 
   while (dealerTotal < 17) {
-    const newCard = Math.floor(Math.random() * 13) + 1;
-    newDealerCards.push(newCard);
-    dealerTotal = calculateHandTotal(newDealerCards);
+    const newCard: ICard = getRandomCard();
+    newDealerCards.cards.push(newCard);
+    dealerTotal = calculateHandValue(newDealerCards);
 
     console.log("Nueva carta del dealer:", newCard);
     console.log("Cartas actuales del dealer:", newDealerCards);
     console.log("Total actual del dealer:", dealerTotal);
   }
 
-  const playerTotal = calculateHandTotal(updatedPlayerCards);
+  const playerTotal = calculateHandValue(updatedPlayerCards);
 
   console.log("Cartas del jugador:", updatedPlayerCards);
   console.log("Total del jugador:", playerTotal);
@@ -151,15 +123,29 @@ export function handleDealerTurn(
 
 export function startNewGameState() {
   return {
-    dealerCards: [],
-    playerCards: [],
-    gameResult: null,
+    dealerCards: {cards:[]},
+    playerCards: {cards:[]},
+    gameResult: 'pending',
     gameState: "betting",
     message: null,
   };
 }
 
-export function addRandomCardToHand(cards: number[]): number[] {
-  const newCard = Math.floor(Math.random() * 13) + 1;
-  return [...cards, newCard];
+export function addRandomCardToHand(actualHand: IHand): IHand {
+  const newHand: IHand = {
+    cards: [ ...actualHand.cards, getRandomCard()]
+  }
+  return newHand;
+}
+
+function getRandomCard(): ICard{
+  
+  const ranks : string[] = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  const suits : string[] = ['spades', 'hearts', 'clubs', 'diamonds'];
+  const card:ICard = {
+    rank: ranks[Math.floor(Math.random() * ranks.length)],
+    suit: suits[Math.floor(Math.random() * suits.length)],
+  }
+
+  return card
 }

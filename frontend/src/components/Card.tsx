@@ -1,7 +1,11 @@
 import cardsImg from '../assets/cards.jpg'
-import { TCard as CardType}  from '../types';
+import { ICard as CardType}  from '../types';
 
-export default function Card(card: CardType) {
+interface CardProps extends CardType {
+    isHidden?: boolean;
+  }
+
+export default function Card(card: CardProps) {
 
     const getPosition = (rank: string, suit: string) => {
         const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
@@ -23,7 +27,7 @@ export default function Card(card: CardType) {
     const style = {
         
         backgroundImage: `url(${cardsImg})`,
-        backgroundPosition: `-${position.x*100}% -${position.y*100}%`,
+        backgroundPosition: card.isHidden ? `-${14*100}% -${0*100}%` :`-${position.x*100}% -${position.y*100}%`,
     }
 
 

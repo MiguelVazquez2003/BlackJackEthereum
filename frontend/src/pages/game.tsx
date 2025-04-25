@@ -13,12 +13,13 @@ import {
 import { GameResult } from "../interfaces/IPlayer";
 import {
   dealInitialCards,
-  calculateHandTotal,
+  calculateHandValue,
   handleDealerTurn,
   startNewGameState,
   addRandomCardToHand,
   getGameResult,
 } from "../services/gameService";
+import { IHand } from "../types";
 
 const Game = () => {
   const navigate = useNavigate();
@@ -32,8 +33,8 @@ const Game = () => {
   const [message, setMessage] = useState<string | null>(null);
 
   // Cartas del juego
-  const [dealerCards, setDealerCards] = useState<number[]>([]);
-  const [playerCards, setPlayerCards] = useState<number[]>([]);
+  const [dealerCards, setDealerCards] = useState<IHand>({cards:[]});
+  const [playerCards, setPlayerCards] = useState<IHand>({cards:[]});
 
   // Estados del juego
   const [gameResult, setGameResult] = useState<string | null>(null);
@@ -129,7 +130,7 @@ const startNewGame = () => {
     setDealerCards(newDealerCards);
     setPlayerCards(newPlayerCards);
 
-    const playerTotal = calculateHandTotal(newPlayerCards);
+    const playerTotal = calculateHandValue(newPlayerCards);
     if (playerTotal === 21) {
       const { dealerCards, result } = handleDealerTurn(
         newPlayerCards,
@@ -147,13 +148,13 @@ const handleHit = () => {
   const updatedPlayerCards = addRandomCardToHand(playerCards);
   setPlayerCards(updatedPlayerCards);
 
-  const playerTotal = calculateHandTotal(updatedPlayerCards);
+  const playerTotal = calculateHandValue(updatedPlayerCards);
   if (playerTotal > 21) {
     setGameResult("¡Te has pasado! Pierdes.");
     setGameState("gameOver");
 
     // Pasar los totales correctos para procesar el pago
-    processPayment(playerTotal, calculateHandTotal(dealerCards));
+    processPayment(playerTotal, calculateHandValue(dealerCards));
   } else if (playerTotal === 21) {
     handleStand();
   }
@@ -214,7 +215,7 @@ const handleStand = () => {
       if (contractResult > 0) {
         // Si hay blackjack natural (21 con 2 cartas) paga 3:2
         const isBlackjack =
-          playerCards.length === 2 && calculateHandTotal(playerCards) === 21;
+          playerCards.cards.length === 2 && calculateHandValue(playerCards) === 21;
         const multiplier = isBlackjack ? 1.5 : 1; // Multiplicador adicional para blackjack
         const winAmount = (parseFloat(betAmount) * multiplier).toFixed(8);
 
@@ -232,8 +233,8 @@ const handleStand = () => {
 
 
 
-  const playerTotal = calculateHandTotal(playerCards);
-  const dealerTotal = calculateHandTotal(dealerCards);
+  const playerTotal = calculateHandValue(playerCards);
+  const dealerTotal = calculateHandValue(dealerCards);
 
   // Si el usuario no está autenticado, redirigir a inicio
   if (!isAuthenticated) {
@@ -287,27 +288,27 @@ const handleStand = () => {
           {/* Mesa de juego */}
           <div
             className={`bg-green-900 rounded-lg p-6 mb-6 transition-opacity duration-300 ${
-              gameState === "betting" ? "opacity-60" : "opacity-100"
+              gameState === "betting" ? "opacity-70" : "opacity-100"
             }`}
           >
             {/* Cartas del dealer */}
             <div className="mb-6">
               <h2 className="text-white text-lg mb-2">
                 Dealer:{" "}
-                {gameState === "playing" && dealerCards.length > 0
+                {gameState === "betting" && dealerCards.cards.length < 1
                   ? "?"
                   : dealerTotal}
               </h2>
               <div className="flex flex-wrap">
-                {dealerCards.length > 0 ? (
+                {dealerCards.cards.length > 0 ? (
                   <Hand
-                    cards={dealerCards}
-                    hideFirstCard={gameState === "playing"}
+                    cards={dealerCards.cards}
                   />
                 ) : (
-                  <div className="w-16 h-24 bg-gray-800/50 rounded-lg border border-gray-700 flex items-center justify-center">
-                    <span className="text-gray-500">?</span>
-                  </div>
+                  <Hand
+                    cards={dealerCards.cards}
+                    isHidden={true}
+                  />
                 )}
               </div>
             </div>
@@ -318,12 +319,13 @@ const handleStand = () => {
                 Jugador: {playerTotal}
               </h2>
               <div className="flex flex-wrap">
-                {playerCards.length > 0 ? (
-                  <Hand cards={playerCards} />
+                {playerCards.cards.length > 0 ? (
+                  <Hand cards={playerCards.cards} />
                 ) : (
-                  <div className="w-16 h-24 bg-gray-800/50 rounded-lg border border-gray-700 flex items-center justify-center">
-                    <span className="text-gray-500">?</span>
-                  </div>
+                  <Hand
+                    cards={dealerCards.cards}
+                    isHidden={true}
+                  />
                 )}
               </div>
             </div>
@@ -486,7 +488,6 @@ const handleStand = () => {
           className="text-blue-400 hover:text-blue-300 flex items-center"
         >
           <svg
-            xmlns="http://www.w3.org/2000/svg"
             className="h-5 w-5 mr-1"
             viewBox="0 0 20 20"
             fill="currentColor"
@@ -499,10 +500,7 @@ const handleStand = () => {
           </svg>
           Mis Estadísticas
         </button>
-        <p className="text-center text-xs text-gray-500 mt-6">
-          BlackJack Ethereum v1.0 • Desarrollado con tecnología blockchain •{" "}
-          {new Date().getFullYear()}
-        </p>
+        
       </div>
     </div>
   );

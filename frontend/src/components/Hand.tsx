@@ -1,15 +1,22 @@
-import { TCard, THand } from "../types"
+import { ICard, IHand } from "../types"
 import Card from "./Card"
 
-export default function Hand(hand:THand) {
+interface HandProps extends IHand{
+    isHidden?:boolean;
+}
+
+export default function Hand(hand:HandProps) {
 
     return (
         <section className="flex w-full p-4">
             
             {
-                hand.cards.map((item: TCard)=>{
+                hand.isHidden ? 
+                    <Card rank={'2'} suit={'hearts'} isHidden={true} />
+                :
+                hand.cards.map((item: ICard)=>{
                     return (
-                        <Card rank={item.rank} suit={item.suit} />
+                        <Card rank={item.rank} suit={item.suit}/>
                     )
                 })
             }
