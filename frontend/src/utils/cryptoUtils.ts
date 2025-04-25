@@ -14,9 +14,17 @@ export const generateKeyPair = async () => {
   return { publicKey, privateKey };
 };
 
+
+
+
 export const exportKey = async (key: CryptoKey) => {
   return await window.crypto.subtle.exportKey('spki', key); // Export public key
 };
+
+
+
+
+
 
 // New functions for certificate exports
 export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
@@ -28,11 +36,20 @@ export const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
   return window.btoa(binary);
 };
 
+
+
+
+
 export const exportPublicKeyAsPEM = async (publicKey: CryptoKey): Promise<string> => {
   const exported = await window.crypto.subtle.exportKey('spki', publicKey);
   const b64 = arrayBufferToBase64(exported);
   return `${b64.match(/.{1,64}/g)?.join('\n')}`;
 };
+
+
+
+
+
 
 export const exportPrivateKeyAsJSON = async (
   encryptedPrivateKey: ArrayBuffer, 
@@ -45,6 +62,10 @@ export const exportPrivateKeyAsJSON = async (
     salt: arrayBufferToBase64(salt.buffer)
   }, null, 2);
 };
+
+
+
+
 
 export const encryptWithPassword = async (password: string, privateKey: CryptoKey) => {
   // Convert CryptoKey to JWK for serialization
@@ -84,6 +105,9 @@ export const encryptWithPassword = async (password: string, privateKey: CryptoKe
   return { encryptedData, iv, salt };
 };
 
+
+
+
 export const decryptWithPassword = async (
   password: string,
   encryptedData: ArrayBuffer,
@@ -120,6 +144,13 @@ export const decryptWithPassword = async (
 
   return new TextDecoder().decode(decryptedData);
 };
+
+
+
+
+
+
+
 
 // Add function to import certificate from files
 export const importCertificateFromFiles = async (
@@ -160,6 +191,11 @@ export const importCertificateFromFiles = async (
   }
 };
 
+
+
+
+
+
 // Helper function to convert Base64 to ArrayBuffer
 export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
   const binaryString = window.atob(base64);
@@ -168,4 +204,9 @@ export const base64ToArrayBuffer = (base64: string): ArrayBuffer => {
     bytes[i] = binaryString.charCodeAt(i);
   }
   return bytes.buffer;
+};
+
+
+export const generateNonce = (): number => {
+  return Math.floor(Date.now() / 1000); // Usar el timestamp actual como nonce
 };

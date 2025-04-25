@@ -25,10 +25,6 @@ export async function registerPlayerCertificate(certificate: any) {
   try {
     const contract = await getBlackjackContractWithSigner();
 
-    console.log(contract);
-
-    console.log(certificate);
-
     // Convertir el objeto de certificado a una cadena JSON
     const certificateJSON = JSON.stringify(certificate);
 
@@ -55,11 +51,38 @@ export async function getMaxBet() {
   }
 }
 
+// Función para depositar fondos en el contrato
+export async function depositFunds(amount: string) {
+  try {
+    const contract = await getBlackjackContractWithSigner();
+    const tx = await contract.depositFunds({
+      value: ethers.parseEther(amount),
+    });
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error al depositar fondos:", error);
+    throw error;
+  }
+}
+
+// Función para retirar el balance restante del contrato
+export async function withdrawFunds() {
+  try {
+    const contract = await getBlackjackContractWithSigner();
+    const tx = await contract.withdrawFunds();
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error al retirar fondos:", error);
+    throw error;
+  }
+}
+
 // Función para firmar un mensaje que contiene el resultado del juego
 export async function signGameResult(
   playerAddress: string,
   result: GameResult,
-  betAmount: string // en ETH
+  betAmount: string, // en ETH
+  nonce: number // Identificador único para la partida
 ): Promise<string> {
   try {
     const provider = new ethers.BrowserProvider(window.ethereum);
@@ -68,8 +91,8 @@ export async function signGameResult(
 
     // Crear el mensaje hash según la lógica del contrato
     const messageHash = ethers.solidityPackedKeccak256(
-      ["address", "int256", "uint256"],
-      [playerAddress, result, betInWei]
+      ["address", "int256", "uint256", "uint256"],
+      [playerAddress, result, betInWei, nonce]
     );
 
     // Firma el hash
@@ -81,32 +104,24 @@ export async function signGameResult(
   }
 }
 
+
 // Función para registrar el resultado de una partida y almacenar estadísticas
 export async function recordGame(
   result: GameResult,
   betAmount: string, // en ETH
-  signature: string
+  signature: string,
+  nonce: number // Identificador único para la partida
 ) {
   try {
     const contract = await getBlackjackContractWithSigner();
     const betInWei = ethers.parseEther(betAmount);
 
-    // Si el jugador pierde, debe enviar ETH al contrato
-    let options = {};
-    if (result < 0) {
-      console.log(
-        `Enviando ${betAmount} ETH al contrato porque el jugador perdió`
-      );
-      options = { value: betInWei };
-    }
-
     console.log(
-      `Llamando a recordGame con resultado ${result}, apuesta ${betAmount} ETH`
+      `Llamando a recordGame con resultado ${result}, apuesta ${betAmount} ETH, nonce ${nonce}`
     );
-    console.log(`Opciones de transacción:`, options);
 
     // Llamar a la función recordGame del contrato
-    const tx = await contract.recordGame(signature, result, betInWei, options);
+    const tx = await contract.recordGame(signature, result, betInWei, nonce);
 
     console.log(`Transacción enviada: ${tx.hash}`);
     const receipt = await tx.wait();
@@ -118,7 +133,6 @@ export async function recordGame(
     throw error;
   }
 }
-
 // Función para obtener las estadísticas de un jugador
 export async function getPlayerStats(
   playerAddress: string
@@ -178,6 +192,7 @@ export async function checkAndRegisterCertificate(
   }
 }
 
+// Función para verificar si un usuario ya existe
 export async function userExists(userID: string): Promise<boolean> {
   if (!userID) return false;
 
@@ -191,6 +206,7 @@ export async function userExists(userID: string): Promise<boolean> {
   }
 }
 
+// Función para obtener el historial de partidas de un jugador
 export async function getPlayerGames(playerAddress: string): Promise<Game[]> {
   try {
     const contract = getBlackjackContractReadOnly();
@@ -207,6 +223,5 @@ export async function getPlayerGames(playerAddress: string): Promise<Game[]> {
     throw error;
   }
 }
-
 
 export { BLACKJACK_ABI };

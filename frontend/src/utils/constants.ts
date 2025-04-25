@@ -11,8 +11,16 @@ declare global {
 
 // Dirección del contrato en la red de prueba Sepolia
 export const BLACKJACK_CONTRACT_ADDRESS = import.meta.env.VITE_BLACKJACK_CONTRACT_ADDRESS;
+
 // ABI del contrato Blackjack
 export const BLACKJACK_ABI = [
+  {
+    inputs: [],
+    name: "depositFunds",
+    outputs: [],
+    stateMutability: "payable",
+    type: "function",
+  },
   {
     inputs: [],
     stateMutability: "nonpayable",
@@ -56,6 +64,44 @@ export const BLACKJACK_ABI = [
       },
     ],
     name: "CertificateRegistered",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "player",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "FundsDeposited",
+    type: "event",
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
+        internalType: "address",
+        name: "player",
+        type: "address",
+      },
+      {
+        indexed: false,
+        internalType: "uint256",
+        name: "amount",
+        type: "uint256",
+      },
+    ],
+    name: "FundsWithdrawn",
     type: "event",
   },
   {
@@ -120,6 +166,65 @@ export const BLACKJACK_ABI = [
     ],
     name: "GameStarted",
     type: "event",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "signature",
+        type: "bytes",
+      },
+      {
+        internalType: "int256",
+        name: "result",
+        type: "int256",
+      },
+      {
+        internalType: "uint256",
+        name: "bet",
+        type: "uint256",
+      },
+      {
+        internalType: "uint256",
+        name: "nonce",
+        type: "uint256",
+      },
+    ],
+    name: "recordGame",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "bytes",
+        name: "certificate",
+        type: "bytes",
+      },
+    ],
+    name: "registerCertificate",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawContractFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "withdrawFunds",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    stateMutability: "payable",
+    type: "receive",
   },
   {
     inputs: [
@@ -226,6 +331,25 @@ export const BLACKJACK_ABI = [
         type: "address",
       },
     ],
+    name: "playerBalances",
+    outputs: [
+      {
+        internalType: "uint256",
+        name: "",
+        type: "uint256",
+      },
+    ],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [
+      {
+        internalType: "address",
+        name: "",
+        type: "address",
+      },
+    ],
     name: "playerCertificates",
     outputs: [
       {
@@ -299,75 +423,5 @@ export const BLACKJACK_ABI = [
     ],
     stateMutability: "view",
     type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "signature",
-        type: "bytes",
-      },
-      {
-        internalType: "int256",
-        name: "result",
-        type: "int256",
-      },
-      {
-        internalType: "uint256",
-        name: "bet",
-        type: "uint256",
-      },
-    ],
-    name: "recordGame",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "signature",
-        type: "bytes",
-      },
-      {
-        internalType: "int256",
-        name: "result",
-        type: "int256",
-      },
-      {
-        internalType: "uint256",
-        name: "bet",
-        type: "uint256",
-      },
-    ],
-    name: "recordGameResult",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
-  },
-  {
-    inputs: [
-      {
-        internalType: "bytes",
-        name: "certificate",
-        type: "bytes",
-      },
-    ],
-    name: "registerCertificate",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdrawFunds",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    stateMutability: "payable",
-    type: "receive",
   },
 ];

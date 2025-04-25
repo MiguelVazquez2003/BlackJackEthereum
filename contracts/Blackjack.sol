@@ -29,6 +29,12 @@ contract Blackjack {
     // Mapeo de direcciones a historial de partidas
     mapping(address => Game[]) public playerGames;
 
+    // Mapeo de direcciones a balances internos
+    mapping(address => uint256) public playerBalances;
+
+    // Mapeo para registrar firmas ya utilizadas
+    mapping(bytes32 => bool) private usedSignatures;
+
     // Apuesta máxima permitida
     uint256 public maxBet = 0.00001 ether;
 
@@ -37,6 +43,8 @@ contract Blackjack {
     event GameEnded(address indexed player, int256 result);
     event CertificateRegistered(address indexed player);
     event GameRecorded(address indexed player, int256 result, uint256 bet);
+    event FundsDeposited(address indexed player, uint256 amount);
+    event FundsWithdrawn(address indexed player, uint256 amount);
 
     // Constructor del contrato
     constructor() {}
@@ -46,95 +54,71 @@ contract Blackjack {
         return playerCertificates[player].length > 0;
     }
 
-    // Actualizar la función de registro para evitar sobrescribir certificados existentes
+    // Función para registrar un certificado de jugador
     function registerCertificate(bytes memory certificate) public {
         require(playerCertificates[msg.sender].length == 0, "Certificado ya registrado");
         playerCertificates[msg.sender] = certificate;
         emit CertificateRegistered(msg.sender);
     }
 
-    // Función para registrar el resultado de un juego
-    function recordGameResult(
-        bytes memory signature,
-        int256 result,
-        uint256 bet
-    ) public payable {
-        require(
-            playerCertificates[msg.sender].length > 0,
-            "Jugador no registrado"
-        );
-        require(bet <= maxBet, "Apuesta demasiado alta");
-
-        // Verificar la firma del resultado
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(msg.sender, result, bet)
-        );
-        bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
-
-        // Recuperar la dirección que firmó el mensaje
-        address signer = ethSignedMessageHash.recover(signature);
-        require(signer == msg.sender, unicode"Firma inválida");
-
-        // Si el jugador pierde, debe enviar ETH
-        if (result < 0) {
-            require(msg.value >= bet, "Apuesta insuficiente");
-        }
-
-        // Registrar el inicio del juego
-        emit GameStarted(msg.sender, bet);
-
-        // Actualizar estadísticas del jugador
-        playerStats[msg.sender].gamesPlayed += 1;
-
-        // Si el jugador ganó
-        if (result > 0) {
-            playerStats[msg.sender].gamesWon += 1;
-            playerStats[msg.sender].totalWinnings += bet;
-            // La casa transfiere la apuesta al jugador
-            payable(msg.sender).transfer(bet);
-        } else if (result == 0) {
-            // Empate - no se envía nada
-        }
-        // Si result < 0, la casa gana y se queda con la apuesta
-
-        emit GameEnded(msg.sender, result);
+    // Función para depositar fondos en el balance interno
+    function depositFunds() public payable {
+        require(msg.value > 0, "Debes enviar ETH para depositar.");
+        playerBalances[msg.sender] += msg.value;
+        emit FundsDeposited(msg.sender, msg.value);
     }
 
-    // Función para registrar una partida
-    function recordGame(
-        bytes memory signature,
-        int256 result,
-        uint256 bet
-    ) public payable {
-        require(
-            playerCertificates[msg.sender].length > 0,
-            "Jugador no registrado"
-        );
-        require(bet <= maxBet, "Apuesta demasiado alta");
+    // Función para registrar el resultado de un juego
+ function recordGame(
+    bytes memory signature,
+    int256 result,
+    uint256 bet,
+    uint256 nonce // Agregar nonce como argumento
+) public {
+    require(playerCertificates[msg.sender].length > 0, "Jugador no registrado");
+    require(bet <= maxBet, "Apuesta demasiado alta");
+    require(playerBalances[msg.sender] >= bet, "Saldo insuficiente");
 
-        bytes32 messageHash = keccak256(
-            abi.encodePacked(msg.sender, result, bet)
-        );
-        bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
+    // Verificar la firma del resultado
+    bytes32 messageHash = keccak256(abi.encodePacked(msg.sender, result, bet, nonce));
+    bytes32 ethSignedMessageHash = messageHash.toEthSignedMessageHash();
 
-        address signer = ethSignedMessageHash.recover(signature);
-        require(signer == msg.sender, unicode"Firma inválida");
+    address signer = ethSignedMessageHash.recover(signature);
+    require(signer == msg.sender, unicode"Firma inválida");
 
-        if (result < 0) {
-            require(msg.value >= bet, "Apuesta insuficiente");
-        }
+    // Verificar si la firma ya fue utilizada
+    require(!usedSignatures[ethSignedMessageHash], "Firma ya utilizada");
 
-        playerStats[msg.sender].gamesPlayed += 1;
+    // Registrar la firma como utilizada
+    usedSignatures[ethSignedMessageHash] = true;
 
-        if (result > 0) {
-            playerStats[msg.sender].gamesWon += 1;
-            playerStats[msg.sender].totalWinnings += bet;
-            payable(msg.sender).transfer(bet);
-        }
+    // Deducir la apuesta del balance del jugador
+    playerBalances[msg.sender] -= bet;
 
-        playerGames[msg.sender].push(Game(block.timestamp, result, bet));
+    // Actualizar estadísticas del jugador
+    playerStats[msg.sender].gamesPlayed += 1;
 
-        emit GameRecorded(msg.sender, result, bet);
+    if (result > 0) {
+        // Si el jugador gana, se le paga el doble de su apuesta
+        uint256 winnings = bet * 2;
+        playerBalances[msg.sender] += winnings;
+        playerStats[msg.sender].gamesWon += 1;
+        playerStats[msg.sender].totalWinnings += bet;
+    }
+
+    // Registrar la partida en el historial
+    playerGames[msg.sender].push(Game(block.timestamp, result, bet));
+
+    emit GameRecorded(msg.sender, result, bet);
+}
+
+    // Función para retirar el balance restante
+    function withdrawFunds() public {
+        uint256 balance = playerBalances[msg.sender];
+        require(balance > 0, "No tienes fondos para retirar.");
+        playerBalances[msg.sender] = 0;
+        payable(msg.sender).transfer(balance);
+        emit FundsWithdrawn(msg.sender, balance);
     }
 
     // Función para obtener las estadísticas de un jugador
@@ -155,7 +139,7 @@ contract Blackjack {
     }
 
     // Función para que el propietario del contrato retire fondos
-    function withdrawFunds() public {
+    function withdrawContractFunds() public {
         payable(address(this)).transfer(address(this).balance);
     }
 

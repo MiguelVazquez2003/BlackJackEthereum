@@ -9,6 +9,8 @@ import {
   getMaxBet,
   recordGame,
   signGameResult,
+  depositFunds,
+  withdrawFunds,
 } from "../services/blackjackService";
 import { GameResult } from "../interfaces/IPlayer";
 import {
@@ -27,14 +29,15 @@ const Game = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const { account, connect } = useMetaMask();
   const [betAmount, setBetAmount] = useState<string>("0.00001");
+  const [depositAmount, setDepositAmount] = useState<string>("0.01"); // Cantidad para depositar
   const [gameState, setGameState] = useState<
     "betting" | "playing" | "gameOver"
   >("betting");
   const [message, setMessage] = useState<string | null>(null);
 
   // Cartas del juego
-  const [dealerCards, setDealerCards] = useState<IHand>({cards:[]});
-  const [playerCards, setPlayerCards] = useState<IHand>({cards:[]});
+  const [dealerCards, setDealerCards] = useState<IHand>({ cards: [] });
+  const [playerCards, setPlayerCards] = useState<IHand>({ cards: [] });
 
   // Estados del juego
   const [gameResult, setGameResult] = useState<string | null>(null);
@@ -72,17 +75,16 @@ const Game = () => {
     checkAuthentication();
   }, [navigate]);
 
-const startNewGame = () => {
-  const newState = startNewGameState();
-  setDealerCards(newState.dealerCards);
-  setPlayerCards(newState.playerCards);
-  setGameResult(newState.gameResult);
-  setMessage(newState.message);
+  const startNewGame = () => {
+    const newState = startNewGameState();
+    setDealerCards(newState.dealerCards);
+    setPlayerCards(newState.playerCards);
+    setGameResult(newState.gameResult);
+    setMessage(newState.message);
 
-  setGameState("betting");
+    setGameState("betting");
   };
-  
-  
+
   const placeBet = async () => {
     if (!account) {
       setMessage("Debes conectar tu wallet de MetaMask para apostar");
@@ -144,94 +146,119 @@ const startNewGame = () => {
     setIsDealing(false);
   };
 
-const handleHit = () => {
-  const updatedPlayerCards = addRandomCardToHand(playerCards);
-  setPlayerCards(updatedPlayerCards);
+  const handleHit = () => {
+    const updatedPlayerCards = addRandomCardToHand(playerCards);
+    setPlayerCards(updatedPlayerCards);
 
-  const playerTotal = calculateHandValue(updatedPlayerCards);
-  if (playerTotal > 21) {
-    setGameResult("¡Te has pasado! Pierdes.");
+    const playerTotal = calculateHandValue(updatedPlayerCards);
+    if (playerTotal > 21) {
+      setGameResult("¡Te has pasado! Pierdes.");
+      setGameState("gameOver");
+
+      // Pasar los totales correctos para procesar el pago
+      processPayment(playerTotal, calculateHandValue(dealerCards));
+    } else if (playerTotal === 21) {
+      handleStand();
+    }
+  };
+
+  const handleStand = () => {
+    const {
+      dealerCards: newDealerCards,
+      result,
+      playerTotal,
+      dealerTotal,
+    } = handleDealerTurn(playerCards, dealerCards);
+    setDealerCards(newDealerCards);
+    setGameResult(result);
     setGameState("gameOver");
 
-    // Pasar los totales correctos para procesar el pago
-    processPayment(playerTotal, calculateHandValue(dealerCards));
-  } else if (playerTotal === 21) {
-    handleStand();
+    // Usar los totales devueltos por handleDealerTurn
+    processPayment(playerTotal, dealerTotal);
+  };
+
+const processPayment = async (playerTotal: number, dealerTotal: number) => {
+  if (!account) {
+    setMessage("Necesitas conectar tu wallet para procesar el pago");
+    return;
+  }
+
+  try {
+    // Convertir la puntuación a un formato que entienda el contrato
+    const contractResult: GameResult = getGameResult(playerTotal, dealerTotal);
+
+    // Si es empate, no realizar ninguna transacción
+    if (contractResult === 0) {
+      setMessage("Empate. No se realiza ninguna transacción.");
+      return;
+    }
+
+    // Generar un nonce único para la partida
+    const nonce = Math.floor(Date.now() / 1000);
+
+    // Firmar el resultado
+    setMessage("Firmando el resultado del juego...");
+    const signature = await signGameResult(
+      account,
+      contractResult,
+      betAmount,
+      nonce
+    );
+
+    setMessage("Procesando transacción en blockchain...");
+
+    // Registrar el resultado en el contrato
+    await recordGame(contractResult, betAmount, signature, nonce);
+
+    // Actualizar el estado para refrescar el saldo después de la transacción
+    setBalanceRefreshTrigger((prev) => prev + 1);
+
+    // Actualizar mensaje según el resultado
+    if (contractResult > 0) {
+      setMessage(`¡Felicidades! Has ganado. El resultado se ha registrado.`);
+    } else {
+      setMessage("Has perdido tu apuesta.");
+    }
+  } catch (error) {
+    console.error("Error al procesar el pago:", error);
+    setMessage(`Error al procesar el pago: ${(error as Error).message}`);
   }
 };
 
-const handleStand = () => {
-  const {
-    dealerCards: newDealerCards,
-    result,
-    playerTotal,
-    dealerTotal,
-  } = handleDealerTurn(playerCards, dealerCards);
-  setDealerCards(newDealerCards);
-  setGameResult(result);
-  setGameState("gameOver");
 
-  // Usar los totales devueltos por handleDealerTurn
-  processPayment(playerTotal, dealerTotal);
-};
-
-
-  const processPayment = async (playerTotal: number, dealerTotal: number) => {
+  const handleDeposit = async () => {
     if (!account) {
-      setMessage("Necesitas conectar tu wallet para procesar el pago");
+      setMessage("Debes conectar tu wallet de MetaMask para depositar fondos");
       return;
     }
 
     try {
-      // Convertir la puntuación a un formato que entienda el contrato
-      const contractResult: GameResult = getGameResult(
-        playerTotal,
-        dealerTotal
-      );
-
-      // Si es empate, no realizar ninguna transacción
-      if (contractResult === 0) {
-        setMessage("Empate. No se realiza ninguna transacción.");
-        return;
-      }
-
-      // Firmar el resultado
-      setMessage("Firmando el resultado del juego...");
-      const signature = await signGameResult(
-        account,
-        contractResult,
-        betAmount
-      );
-
-      setMessage("Procesando transacción en blockchain...");
-
-      // Registrar el resultado en el contrato
-      await recordGame(contractResult, betAmount, signature);
-
-      // Actualizar el estado para refrescar el saldo después de la transacción
+      setMessage("Procesando depósito...");
+      await depositFunds(depositAmount);
+      setMessage(`Depósito de ${depositAmount} ETH realizado con éxito.`);
       setBalanceRefreshTrigger((prev) => prev + 1);
-
-      // Actualizar mensaje según el resultado
-      if (contractResult > 0) {
-        // Si hay blackjack natural (21 con 2 cartas) paga 3:2
-        const isBlackjack =
-          playerCards.cards.length === 2 && calculateHandValue(playerCards) === 21;
-        const multiplier = isBlackjack ? 1.5 : 1; // Multiplicador adicional para blackjack
-        const winAmount = (parseFloat(betAmount) * multiplier).toFixed(8);
-
-        setMessage(
-          `¡Felicidades! Has ganado ${winAmount} ETH. El pago se ha procesado en la blockchain.`
-        );
-      } else {
-        setMessage("Has perdido tu apuesta de " + betAmount + " ETH.");
-      }
     } catch (error) {
-      console.error("Error al procesar el pago:", error);
-      setMessage(`Error al procesar el pago: ${(error as Error).message}`);
+      console.error("Error al depositar fondos:", error);
+      setMessage(`Error al depositar fondos: ${(error as Error).message}`);
     }
   };
 
+  const handleWithdraw = async () => {
+    if (!account) {
+      setMessage("Debes conectar tu wallet de MetaMask para retirar fondos");
+      return;
+    }
 
+    try {
+      setMessage("Procesando retiro...");
+      await withdrawFunds();
+      setMessage("Retiro realizado con éxito.");
+      setBalanceRefreshTrigger((prev) => prev + 1);
+    } catch (error) {
+      console.error("Error al retirar fondos:", error);
+      setMessage(`Error al retirar fondos: ${(error as Error).message}`);
+    }
+  };
 
   const playerTotal = calculateHandValue(playerCards);
   const dealerTotal = calculateHandValue(dealerCards);
@@ -255,18 +282,6 @@ const handleStand = () => {
                 onClick={() => navigate("/")}
                 className="text-blue-400 hover:text-blue-300 flex items-center"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 mr-1"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M9.707 14.707a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 1.414L7.414 9H15a1 1 0 110 2H7.414l2.293 2.293a1 1 0 010 1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
                 Tutorial
               </button>
               <div>
@@ -285,6 +300,37 @@ const handleStand = () => {
             </div>
           )}
 
+          {/* Controles de depósito y retiro */}
+          <div className="flex justify-between mb-6">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Cantidad a depositar:
+              </label>
+              <input
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={depositAmount}
+                onChange={(e) => setDepositAmount(e.target.value)}
+                className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <button
+                onClick={handleDeposit}
+                className="mt-2 w-full py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-lg"
+              >
+                Depositar
+              </button>
+            </div>
+            <div>
+              <button
+                onClick={handleWithdraw}
+                className="mt-8 w-full py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-lg"
+              >
+                Retirar Fondos
+              </button>
+            </div>
+          </div>
+
           {/* Mesa de juego */}
           <div
             className={`bg-green-900 rounded-lg p-6 mb-6 transition-opacity duration-300 ${
@@ -301,14 +347,9 @@ const handleStand = () => {
               </h2>
               <div className="flex flex-wrap">
                 {dealerCards.cards.length > 0 ? (
-                  <Hand
-                    cards={dealerCards.cards}
-                  />
+                  <Hand cards={dealerCards.cards} />
                 ) : (
-                  <Hand
-                    cards={dealerCards.cards}
-                    isHidden={true}
-                  />
+                  <Hand cards={dealerCards.cards} isHidden={true} />
                 )}
               </div>
             </div>
@@ -322,10 +363,7 @@ const handleStand = () => {
                 {playerCards.cards.length > 0 ? (
                   <Hand cards={playerCards.cards} />
                 ) : (
-                  <Hand
-                    cards={dealerCards.cards}
-                    isHidden={true}
-                  />
+                  <Hand cards={dealerCards.cards} isHidden={true} />
                 )}
               </div>
             </div>
@@ -482,16 +520,11 @@ const handleStand = () => {
           </div>
         </div>
 
-
         <button
           onClick={() => navigate("/stats")}
           className="text-blue-400 hover:text-blue-300 flex items-center"
         >
-          <svg
-            className="h-5 w-5 mr-1"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
+          <svg className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
             <path
               fillRule="evenodd"
               d="M3 3a1 1 0 000 2h10a1 1 0 100-2H3zm0 4a1 1 0 000 2h6a1 1 0 100-2H3zm0 4a1 1 0 100 2h8a1 1 0 100-2H3z"
@@ -500,7 +533,6 @@ const handleStand = () => {
           </svg>
           Mis Estadísticas
         </button>
-        
       </div>
     </div>
   );
