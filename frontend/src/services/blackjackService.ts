@@ -2,7 +2,7 @@ import { ethers } from "ethers";
 import { BLACKJACK_ABI, BLACKJACK_CONTRACT_ADDRESS } from "../utils/constants";
 import { Game, GameResult, PlayerStats } from "../interfaces/IPlayer";
 
-// Función para obtener la instancia del contrato con un proveedor de solo lectura
+// Función para obtener la instancia del contrato 
 export function getBlackjackContractReadOnly() {
   const provider = new ethers.BrowserProvider(window.ethereum);
 
@@ -104,7 +104,6 @@ export async function signGameResult(
   }
 }
 
-
 // Función para registrar el resultado de una partida y almacenar estadísticas
 export async function recordGame(
   result: GameResult,
@@ -133,7 +132,7 @@ export async function recordGame(
     throw error;
   }
 }
-// Función para obtener las estadísticas de un jugador
+
 export async function getPlayerStats(
   playerAddress: string
 ): Promise<PlayerStats> {
@@ -142,9 +141,14 @@ export async function getPlayerStats(
     const stats = await contract.getPlayerStats(playerAddress);
 
     return {
-      gamesPlayed: Number(stats.gamesPlayed),
-      gamesWon: Number(stats.gamesWon),
-      totalWinnings: ethers.formatEther(stats.totalWinnings), // Convertir de wei a ether
+      gamesPlayed: Number(stats[0]), 
+      gamesWon: Number(stats[1]),
+      totalWinnings: ethers.formatEther(stats[2]),
+      totalLosses: ethers.formatEther(stats[3]),
+      hasPendingDebt: stats[4],
+      pendingDebtAmount: ethers.formatEther(stats[5]),
+      initialDeposit: ethers.formatEther(stats[6]),       // Valor del depósito inicial
+      depositTimestamp: Number(stats[7])                  // Timestamp del depósito
     };
   } catch (error) {
     console.error("Error al obtener las estadísticas del jugador:", error);
@@ -223,5 +227,98 @@ export async function getPlayerGames(playerAddress: string): Promise<Game[]> {
     throw error;
   }
 }
+
+
+export async function checkPlayerDebt(playerAddress: string): Promise<{hasDebt: boolean, debtAmount: string}> {
+  try {
+    const contract = await getBlackjackContractReadOnly();
+    // Cambiar hasUnpaidGames por hasPendingDebt
+    const hasDebt = await contract.hasPendingDebt(playerAddress);
+    
+    if (hasDebt) {
+      // Cambiar getUnpaidAmount por getPendingDebtAmount
+      const debtAmount = await contract.getPendingDebtAmount(playerAddress);
+      return {
+        hasDebt: true,
+        debtAmount: ethers.formatEther(debtAmount)
+      };
+    }
+    
+    return {
+      hasDebt: false,
+      debtAmount: "0"
+    };
+  } catch (error) {
+    console.error("Error al verificar deuda del jugador:", error);
+    throw error;
+  }
+}
+
+// Función para saldar una deuda pendiente
+export async function settleDebt(amount: string) {
+  try {
+    const contract = await getBlackjackContractWithSigner();
+    const tx = await contract.settleDebt({
+      value: ethers.parseEther(amount),
+    });
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error al saldar la deuda:", error);
+    throw error;
+  }
+}
+
+// Función para registrar una partida no pagada (cuando el usuario abandona sin pagar)
+export async function recordUnpaidGame(
+  playerAddress: string,
+  betAmount: string
+) {
+  try {
+    const contract = await getBlackjackContractWithSigner();
+    const betInWei = ethers.parseEther(betAmount);
+
+    // Llamar a la función del contrato
+    const tx = await contract.recordUnpaidGame(playerAddress, betInWei);
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error al registrar partida no pagada:", error);
+    throw error;
+  }
+}
+
+export async function finalizeSession() {
+  try {
+    const contract = await getBlackjackContractWithSigner();
+    const tx = await contract.finalizeSession();
+    return await tx.wait();
+  } catch (error) {
+    console.error("Error al finalizar la sesión:", error);
+    throw error;
+  }
+}
+
+
+export async function payPlayerDebt(): Promise<void> {
+  try {
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    const signerAddress = await signer.getAddress();
+    
+    const contract = await getBlackjackContractWithSigner();
+    
+    // Obtener el monto de la deuda usando la dirección del signer
+    const debtAmount = await contract.getPendingDebtAmount(signerAddress);
+    
+    // Llamar a settleDebt con el valor de la deuda
+    const tx = await contract.settleDebt({
+      value: debtAmount
+    });
+    await tx.wait();
+  } catch (error) {
+    console.error("Error al pagar deuda:", error);
+    throw error;
+  }
+}
+
 
 export { BLACKJACK_ABI };

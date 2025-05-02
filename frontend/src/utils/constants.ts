@@ -15,413 +15,574 @@ export const BLACKJACK_CONTRACT_ADDRESS = import.meta.env.VITE_BLACKJACK_CONTRAC
 // ABI del contrato Blackjack
 export const BLACKJACK_ABI = [
   {
-    inputs: [],
-    name: "depositFunds",
-    outputs: [],
-    stateMutability: "payable",
-    type: "function",
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
   },
   {
-    inputs: [],
-    stateMutability: "nonpayable",
-    type: "constructor",
+    "inputs": [],
+    "name": "ECDSAInvalidSignature",
+    "type": "error"
   },
   {
-    inputs: [],
-    name: "ECDSAInvalidSignature",
-    type: "error",
-  },
-  {
-    inputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "length",
-        type: "uint256",
-      },
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
     ],
-    name: "ECDSAInvalidSignatureLength",
-    type: "error",
+    "name": "ECDSAInvalidSignatureLength",
+    "type": "error"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "bytes32",
-        name: "s",
-        type: "bytes32",
-      },
+        "internalType": "bytes32",
+        "name": "s",
+        "type": "bytes32"
+      }
     ],
-    name: "ECDSAInvalidSignatureS",
-    type: "error",
+    "name": "ECDSAInvalidSignatureS",
+    "type": "error"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
     ],
-    name: "CertificateRegistered",
-    type: "event",
+    "name": "CertificateRegistered",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "FundsDeposited",
-    type: "event",
+    "name": "DebtSettled",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "amount",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "FundsWithdrawn",
-    type: "event",
+    "name": "FundsDeposited",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "int256",
-        name: "result",
-        type: "int256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
     ],
-    name: "GameEnded",
-    type: "event",
+    "name": "FundsWithdrawn",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "int256",
-        name: "result",
-        type: "int256",
-      },
-      {
-        indexed: false,
-        internalType: "uint256",
-        name: "bet",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "int256",
+        "name": "result",
+        "type": "int256"
+      }
     ],
-    name: "GameRecorded",
-    type: "event",
+    "name": "GameEnded",
+    "type": "event"
   },
   {
-    anonymous: false,
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        indexed: true,
-        internalType: "address",
-        name: "player",
-        type: "address",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
       {
-        indexed: false,
-        internalType: "uint256",
-        name: "bet",
-        type: "uint256",
+        "indexed": false,
+        "internalType": "int256",
+        "name": "result",
+        "type": "int256"
       },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bet",
+        "type": "uint256"
+      }
     ],
-    name: "GameStarted",
-    type: "event",
+    "name": "GameRecorded",
+    "type": "event"
   },
   {
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        internalType: "bytes",
-        name: "signature",
-        type: "bytes",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
       {
-        internalType: "int256",
-        name: "result",
-        type: "int256",
-      },
-      {
-        internalType: "uint256",
-        name: "bet",
-        type: "uint256",
-      },
-      {
-        internalType: "uint256",
-        name: "nonce",
-        type: "uint256",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "bet",
+        "type": "uint256"
+      }
     ],
-    name: "recordGame",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
+    "name": "GameStarted",
+    "type": "event"
   },
   {
-    inputs: [
+    "anonymous": false,
+    "inputs": [
       {
-        internalType: "bytes",
-        name: "certificate",
-        type: "bytes",
+        "indexed": true,
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
       },
-    ],
-    name: "registerCertificate",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdrawContractFunds",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    inputs: [],
-    name: "withdrawFunds",
-    outputs: [],
-    stateMutability: "nonpayable",
-    type: "function",
-  },
-  {
-    stateMutability: "payable",
-    type: "receive",
-  },
-  {
-    inputs: [
       {
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "finalBalance",
+        "type": "uint256"
+      }
     ],
-    name: "getPlayerGames",
-    outputs: [
+    "name": "SessionFinalized",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "depositFunds",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "finalizeSession",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
-        components: [
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
+    ],
+    "name": "getPendingDebtAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
+    ],
+    "name": "getPlayerGames",
+    "outputs": [
+      {
+        "components": [
           {
-            internalType: "uint256",
-            name: "timestamp",
-            type: "uint256",
+            "internalType": "uint256",
+            "name": "timestamp",
+            "type": "uint256"
           },
           {
-            internalType: "int256",
-            name: "result",
-            type: "int256",
+            "internalType": "int256",
+            "name": "result",
+            "type": "int256"
           },
           {
-            internalType: "uint256",
-            name: "bet",
-            type: "uint256",
+            "internalType": "uint256",
+            "name": "bet",
+            "type": "uint256"
           },
+          {
+            "internalType": "bool",
+            "name": "settled",
+            "type": "bool"
+          }
         ],
-        internalType: "struct Blackjack.Game[]",
-        name: "",
-        type: "tuple[]",
-      },
+        "internalType": "struct Blackjack.Game[]",
+        "name": "",
+        "type": "tuple[]"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
     ],
-    name: "getPlayerStats",
-    outputs: [
+    "name": "getPlayerStats",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "gamesPlayed",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "gamesPlayed",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "gamesWon",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "gamesWon",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "totalWinnings",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "totalWinnings",
+        "type": "uint256"
       },
+      {
+        "internalType": "uint256",
+        "name": "totalLosses",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "playerHasDebt",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pendingDebtAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialDepositAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "depositTime",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "player",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
     ],
-    name: "isCertificateRegistered",
-    outputs: [
+    "name": "hasPendingDebt",
+    "outputs": [
       {
-        internalType: "bool",
-        name: "",
-        type: "bool",
-      },
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [],
-    name: "maxBet",
-    outputs: [
+    "inputs": [
       {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "name": "isCertificateRegistered",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [],
+    "name": "maxBet",
+    "outputs": [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    name: "playerBalances",
-    outputs: [
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
-    ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    name: "playerCertificates",
-    outputs: [
+    "name": "playerBalances",
+    "outputs": [
       {
-        internalType: "bytes",
-        name: "",
-        type: "bytes",
-      },
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
-      },
-      {
-        internalType: "uint256",
-        name: "",
-        type: "uint256",
-      },
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
     ],
-    name: "playerGames",
-    outputs: [
+    "name": "playerCertificates",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "timestamp",
-        type: "uint256",
-      },
-      {
-        internalType: "int256",
-        name: "result",
-        type: "int256",
-      },
-      {
-        internalType: "uint256",
-        name: "bet",
-        type: "uint256",
-      },
+        "internalType": "bytes",
+        "name": "",
+        "type": "bytes"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
   {
-    inputs: [
+    "inputs": [
       {
-        internalType: "address",
-        name: "",
-        type: "address",
+        "internalType": "address",
+        "name": "",
+        "type": "address"
       },
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
     ],
-    name: "playerStats",
-    outputs: [
+    "name": "playerGames",
+    "outputs": [
       {
-        internalType: "uint256",
-        name: "gamesPlayed",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "timestamp",
+        "type": "uint256"
       },
       {
-        internalType: "uint256",
-        name: "gamesWon",
-        type: "uint256",
+        "internalType": "int256",
+        "name": "result",
+        "type": "int256"
       },
       {
-        internalType: "uint256",
-        name: "totalWinnings",
-        type: "uint256",
+        "internalType": "uint256",
+        "name": "bet",
+        "type": "uint256"
       },
+      {
+        "internalType": "bool",
+        "name": "settled",
+        "type": "bool"
+      }
     ],
-    stateMutability: "view",
-    type: "function",
+    "stateMutability": "view",
+    "type": "function"
   },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "playerStats",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "gamesPlayed",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gamesWon",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalWinnings",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "totalLosses",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bool",
+        "name": "hasPendingDebt",
+        "type": "bool"
+      },
+      {
+        "internalType": "uint256",
+        "name": "pendingDebtAmount",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "initialDeposit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "depositTimestamp",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "signature",
+        "type": "bytes"
+      },
+      {
+        "internalType": "int256",
+        "name": "result",
+        "type": "int256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bet",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "nonce",
+        "type": "uint256"
+      }
+    ],
+    "name": "recordGame",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "player",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "bet",
+        "type": "uint256"
+      }
+    ],
+    "name": "recordUnpaidGame",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes",
+        "name": "certificate",
+        "type": "bytes"
+      }
+    ],
+    "name": "registerCertificate",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "settleDebt",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "withdrawContractFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
+  }
 ];
