@@ -3,9 +3,10 @@ import { useMetaMask } from "../hooks/useMetaMask";
 import { setAuthenticatedUser } from "../utils/sessionUtils";
 import { useNavigate } from "react-router-dom";
 import { userExists } from "../services/blackjackService";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const Login = () => {
-  const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { account, connect } = useMetaMask();
   const navigate = useNavigate();
@@ -13,47 +14,49 @@ const Login = () => {
   useEffect(() => {
     const checkCertificate = async () => {
       setIsLoading(true);
-      setError(null);
-  
+      
       try {
         const exists = await userExists(account!);
         if (exists) {
           setAuthenticatedUser(account!);
           navigate("/inicio"); // Redirige al inicio si el certificado está registrado
         } else {
-          setError(
+          toast.error(
             `La cuenta de MetaMask "${account}" no tiene un certificado registrado. Por favor, regístrate primero.`
           );
         }
       } catch (err) {
         console.error("Error al verificar el certificado:", err);
-        setError("Error al verificar el certificado. Intenta nuevamente.");
+        toast.error("Error al verificar el certificado. Intenta nuevamente.");
       } finally {
         setIsLoading(false);
       }
     };
-
     
     if (account) {
       checkCertificate();
     }
   }, [account, navigate]);
 
-  
-
   return (
     <div className="min-h-screen bg-casinogreen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-16">
+      <ToastContainer 
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark"
+      />
       <h1 className="font-title font-bold text-8xl text-white">Blackjack</h1>
       <div className="max-w-md mx-auto bg-secondarygreen rounded-xl shadow-md overflow-hidden p-6 space-y-6">
         <h1 className="text-xl font-bold text-center text-white">
           Iniciar Sesión
         </h1>
-
-        {error && (
-          <div className="bg-red-900/40 border border-red-700/50 text-red-200 px-4 py-3 rounded-lg">
-            <p>{error}</p>
-          </div>
-        )}
 
         <button
           onClick={connect}
