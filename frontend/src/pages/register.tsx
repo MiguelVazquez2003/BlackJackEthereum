@@ -13,7 +13,7 @@ import {
   registerPlayerCertificate,
 } from "../services/blackjackService";
 
-const Register = () => {
+const Register = ({setAuth}:{setAuth:(auth:boolean) => void}) => {
   const [password, setPassword] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -58,6 +58,7 @@ const Register = () => {
 
       await registerPlayerCertificate(certificate);
       setAuthenticatedUser(account);
+      setAuth(true);
 
       const publicKeyPEM = await exportPublicKeyAsPEM(publicKey);
       const privateKeyJSON = await exportPrivateKeyAsJSON(

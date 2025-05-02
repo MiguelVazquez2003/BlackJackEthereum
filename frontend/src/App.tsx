@@ -3,7 +3,6 @@ import {
   Routes,
   Route,
   Navigate,
-  Link,
 } from "react-router-dom";
 import "./App.css";
 import Login from "./pages/login";
@@ -12,64 +11,40 @@ import Game from "./pages/game";
 import Depositos from "./pages/depositos";
 import Apuesta from "./pages/apuesta";
 import StatsPlayer from "./pages/statsPlayer";
-import { getAuthenticatedUser } from "./utils/sessionUtils";
+import { isAuthenticated } from "./utils/sessionUtils";
 import Inicio from "./pages/inicio";
-import { JSX } from "react";
+import { JSX, useState } from "react";
+import { Sidebar } from "./components/Sidebar";
 
-// Componente de protección de rutas
-const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
-  const isAuthenticated = !!getAuthenticatedUser();
 
-  if (!isAuthenticated) {
-    // Redirigir a inicio si no está autenticado
-    return <Navigate to="/" replace />;
-  }
-
-  return children;
-};
-
-// Componente del Sidebar
-const Sidebar = () => {
-  return (
-    <div className="h-screen w-64 bg-secondarygreen text-white fixed flex flex-col">
-      <h1 className="text-2xl font-bold text-center py-6 border-b border-gray-700">
-        Blackjack
-      </h1>
-      <nav className="flex flex-col mt-6 space-y-4 px-4">
-        <Link
-          to="/inicio"
-          className="py-2 px-4 rounded-lg hover:bg-gray-700 transition"
-        >
-          Inicio
-        </Link>
-        <Link
-          to="/stats"
-          className="py-2 px-4 rounded-lg hover:bg-gray-700 transition"
-        >
-          Mis Estadísticas
-        </Link>
-        <Link
-          to="/game"
-          className="py-2 px-4 rounded-lg hover:bg-gray-700 transition"
-        >
-          Jugar
-        </Link>
-
-      </nav>
-    </div>
-  );
-};
 
 function App() {
+
+  const [auth, setAuth] = useState(isAuthenticated());
+
+  //protección de rutas
+  const ProtectedRoute = ({ children }: { children: JSX.Element }) => {
+
+    if (!auth) {
+      // Redirigir a inicio si no está autenticado
+      return <Navigate to="/" replace />;
+    }
+  
+    return children;
+  };
+
   return (
     <Router>
       <div className="flex">
-        <Sidebar />
-        <div className="flex-1 ml-64">
+        {
+          auth &&
+          <Sidebar />
+        }
+        <div className={`w-full ${auth ? 'ml-64' : ''}`}>
           <Routes>
-            <Route path="/" element={<Login />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/" element={<Inicio />} />
+            <Route path="/login" element={<Login setAuth={setAuth}/>} />
+            <Route path="/register" element={<Register setAuth={setAuth}/>} />
             <Route
               path="/game"
               element={

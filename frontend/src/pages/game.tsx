@@ -35,7 +35,7 @@ const Game = () => {
   const [searchParams] = useSearchParams();
   const [userName, setUserName] = useState<string>("");
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const { account, connect } = useMetaMask();
+  const { account } = useMetaMask();
   const [betAmount, setBetAmount] = useState<string>("0.00001");
   const [gameState, setGameState] = useState<
     "betting" | "playing" | "gameOver"
@@ -434,7 +434,7 @@ const handleUnpaidGame = async () => {
 
 
           <div>
-                <span className="text-gray-400 mr-2">Usuario:</span>
+                <span className="text-white mr-2">Usuario:</span>
                 <span className="text-white font-medium truncate max-w-[150px] inline-block align-bottom">
                   {userName.substring(0, 30)}
                 </span>

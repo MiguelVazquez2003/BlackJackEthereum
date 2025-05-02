@@ -6,7 +6,7 @@ import { userExists } from "../services/blackjackService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const Login = () => {
+const Login = ({setAuth}:{setAuth:(auth:boolean) => void}) => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const { account, connect } = useMetaMask();
   const navigate = useNavigate();
@@ -19,6 +19,7 @@ const Login = () => {
         const exists = await userExists(account!);
         if (exists) {
           setAuthenticatedUser(account!);
+          setAuth(true);
           navigate("/inicio"); // Redirige al inicio si el certificado está registrado
         } else {
           toast.error(
@@ -36,7 +37,7 @@ const Login = () => {
     if (account) {
       checkCertificate();
     }
-  }, [account, navigate]);
+  }, [account, navigate, setAuth]);
 
   return (
     <div className="min-h-screen bg-casinogreen py-12 px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-16">

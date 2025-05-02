@@ -3,14 +3,17 @@ import Lottie from "lottie-react";
 // Importa tus archivos JSON de Lottie 
 import animationData from "../assets/cards.json"
 import ethereumAnimation from "../assets/ehterium.json"
+import { isAuthenticated } from "../utils/sessionUtils";
+import { Footer } from "../components/Footer";
 
 const Inicio = () => {
   const navigate = useNavigate();
+  const auth = isAuthenticated()
 
   return (
     <div className="min-h-screen bg-casinogreen flex flex-col items-center text-white px-4 py-8">
       {/* Hero Section */}
-      <div className="w-full max-w-6xl flex flex-col items-center justify-center pt-8 pb-12">
+      <section className="w-full max-w-6xl flex flex-col items-center justify-center pt-8 pb-12 min-h-screen">
         <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-8xl font-bold mb-6 font-title text-center">Blackjack Ethereum</h1>
         
         {/* Animaciones*/}
@@ -27,19 +30,20 @@ const Inicio = () => {
           Bienvenido a la experiencia definitiva de Blackjack en la blockchain de Ethereum
         </p>
         
-        <div className="flex gap-4">
+        <div className="flex gap-4 justify-center ">
           <button
-            onClick={() => navigate("/game")}
-            className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 text-white font-semibold rounded-md transition text-sm md:text-base"
+            onClick={() => auth ? navigate("/game") : navigate("/login")}
+            className="py-2 px-6 md:py-3 md:px-8 hover:bg-red-950 hover:cursor-pointer bg-red-900 text-white font-semibold rounded-md transition text-sm md:text-base"
           >
             Jugar
           </button>
+          <a href="#description" className="py-2 px-6 md:py-3 md:px-8 hover:bg-zinc-950 hover:cursor-pointer bg-zinc-800 text-white font-semibold rounded-md transition text-sm md:text-base">¿Como funciona?</a>
 
         </div>
-      </div>
+      </section>
 
       {/* breve descripcion*/}
-      <div className="w-full max-w-6xl py-12 border-t border-white/10">
+      <section id="description" className="w-full max-w-6xl py-12 border-t border-white/10">
         <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center font-title">¿Qué es Blackjack Ethereum?</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -61,10 +65,10 @@ const Inicio = () => {
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* pequeño tutorial */}
-      <div className="w-full max-w-6xl py-12 border-t border-white/10">
+      <section className="w-full max-w-6xl py-12 border-t border-white/10">
         <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center font-title">Cómo Jugar</h2>
         
         <div className="space-y-6">
@@ -116,10 +120,10 @@ const Inicio = () => {
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {/* caracteristricas */}
-      <div className="w-full max-w-6xl py-12 border-t border-white/10">
+      <section className="w-full max-w-6xl py-12 border-t border-white/10">
         <h2 className="text-3xl md:text-4xl font-bold mb-8 text-center font-title">Ventajas de Jugar con Nosotros</h2>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -165,14 +169,11 @@ const Inicio = () => {
             </p>
           </div>
         </div>
-      </div>
+      </section>
 
       
       {/* Footer  (hacerlo componente faltaria)*/}
-      <div className="w-full max-w-6xl mt-12 border-t border-white/10 pt-8 pb-4 text-center">
-        <p className="text-sm text-gray-400">© {new Date().getFullYear()} Blackjack Ethereum. Todos los derechos reservados.</p>
-        <p className="text-xs text-gray-500 mt-2">Juega de manera responsable. El juego con criptomonedas involucra riesgos financieros.</p>
-      </div>
+      <Footer />
     </div>
 
 
