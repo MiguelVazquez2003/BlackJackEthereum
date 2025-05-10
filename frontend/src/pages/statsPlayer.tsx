@@ -9,6 +9,21 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import Balance from "../components/Balance";
+import { BarChart, Bar } from "recharts"
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Legend,
+} from "recharts";
+
 
 const StatsPlayer = () => {
   const navigate = useNavigate();
@@ -70,6 +85,34 @@ const StatsPlayer = () => {
     if (!timestamp) return "No disponible";
     return new Date(timestamp * 1000).toLocaleString();
   };
+
+  const pieData = [
+  { name: "Ganadas", value: stats?.gamesWon || 0 },
+  { name: "Perdidas", value: gamesLost },
+];
+const pieColors = ["#4ade80", "#f87171"];
+
+const evolutionData = games.map((game, index) => {
+
+  const resultValue = parseFloat(game.result.toString());
+
+  return {
+    name: `#${index + 1} (${game.timestamp})`,
+    Ganancia: resultValue,
+  };
+
+});
+
+const cumulativeData = [];
+let accumulated = 0;
+for (let i = 0; i < games.length; i++) {
+  const resultValue = parseFloat(games[i].result.toString());
+  accumulated += resultValue;
+  cumulativeData.push({
+    name: `#${i + 1}`,
+    "Ganancia Acumulada": parseFloat(accumulated.toFixed(6)),
+  });
+}
 
   return (
     <div className="min-h-screen bg-casinogreen flex flex-col items-center text-white px-4 py-8">
@@ -187,6 +230,99 @@ const StatsPlayer = () => {
                 color="text-blue-400"
               />
             </div>
+{/* Gráfica de pastel - Partidas ganadas vs perdidas */}
+<div className="bg-[#0f172a] p-6 rounded-xl shadow-lg">
+  <h2 className="text-3xl font-bold mb-4 text-center text-white">Distribución de Partidas</h2>
+  <ResponsiveContainer width="100%" height={280}>
+    <PieChart>
+      <Pie
+        data={pieData}
+        dataKey="value"
+        nameKey="name"
+        cx="50%"
+        cy="50%"
+        outerRadius={90}
+        labelLine={false}
+        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+      >
+        {pieData.map((entry, index) => (
+          <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+        ))}
+      </Pie>
+      <Tooltip
+        contentStyle={{ backgroundColor: "#1e293b", borderRadius: "8px", borderColor: "#334155" }}
+        labelStyle={{ color: "#cbd5e1" }}
+        itemStyle={{ color: "#f1f5f9" }}
+      />
+    </PieChart>
+  </ResponsiveContainer>
+</div>
+
+
+{/*Graficas de resultado cada partida*/}
+<div className="bg-[#0f172a] p-6 rounded-xl shadow-lg mt-8">
+  <h2 className="text-xl font-bold mb-2 text-center text-white">📊 Resultado de cada partida</h2>
+  <p className="text-center text-sm text-gray-400 mb-4">Verde = ganancia, Rojo = pérdida</p>
+  <ResponsiveContainer width="100%" height={250}>
+    <BarChart data={evolutionData}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+      <XAxis dataKey="name" hide />
+      <YAxis />
+      <Tooltip
+        formatter={(value: number) => `${value.toFixed(4)} ETH`}
+        contentStyle={{ backgroundColor: "#1e293b", borderRadius: "8px" }}
+      />
+      <Bar
+        dataKey="Ganancia"
+        radius={[4, 4, 0, 0]}
+        fill="#4ade80"
+        isAnimationActive={true}
+      >
+        {evolutionData.map((entry, index) => (
+          <Cell
+            key={`cell-${index}`}
+            fill={entry.Ganancia >= 0 ? "#4ade80" : "#f87171"}
+          />
+        ))}
+      </Bar>
+    </BarChart>
+  </ResponsiveContainer>
+</div>
+
+{/* Gráfica de línea - Ganancia acumulada balance acumulado */}
+<div className="bg-[#0f172a] p-6 rounded-xl shadow-lg mt-8">
+  <h2 className="text-xl font-bold mb-2 text-center text-white">💹 Balance acumulado</h2>
+  <p className="text-center text-sm text-gray-400 mb-2">
+    Muestra cómo se acumularon tus ganancias o pérdidas
+  </p>
+  <div className="text-center text-lg font-bold mb-3">
+    <span className={parseFloat(netProfit) >= 0 ? "text-green-400" : "text-red-400"}>
+      Balance total: {netProfit} ETH
+    </span>
+  </div>
+  <ResponsiveContainer width="100%" height={200}>
+    <LineChart data={cumulativeData}>
+      <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+      <XAxis dataKey="name" hide />
+      <YAxis />
+      <Tooltip
+        formatter={(value: number) => `${value.toFixed(4)} ETH`}
+        contentStyle={{ backgroundColor: "#1e293b", borderRadius: "8px" }}
+      />
+      <Line
+        type="monotone"
+        dataKey="Ganancia Acumulada"
+        stroke="#34d399"
+        strokeWidth={2}
+        dot={false}
+      />
+    </LineChart>
+  </ResponsiveContainer>
+</div>
+
+
+
+
 
             {/* Estado de deuda - Directamente desde contrato */}
             {stats.hasPendingDebt && (
