@@ -147,7 +147,7 @@ const Depositos: React.FC<DepositosProps> = ({ onDepositComplete }) => {
     <div className="flex flex-col items-center gap-4 w-full">
       {!account ? (
         <button
-          onClick={connect}
+          onClick={() => connect()}
           className="py-3 px-6 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition"
         >
           Conectar MetaMask

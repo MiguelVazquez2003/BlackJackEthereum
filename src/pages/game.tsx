@@ -132,10 +132,9 @@ const Game = () => {
     const newState = startNewGameState();
     setDealerCards(newState.dealerCards);
     setPlayerCards(newState.playerCards);
-    setGameResult(newState.gameResult);
-    setMessage(newState.message);
-
+    setGameResult(null); // reiniciar el resultado
     setGameState("betting");
+    setMessage(null);
   };
 
   const handlePayDebt = async () => {
@@ -167,30 +166,31 @@ const Game = () => {
       toast.error("Debes conectar tu wallet de MetaMask para apostar");
       return;
     }
-
+  
     if (hasDebt) {
       toast.error(`Tienes una deuda pendiente de ${debtAmount} ETH. Debes saldarla antes de jugar.`);
       return;
     }
-
+  
     if (parseFloat(initialDeposit) <= 0) {
       toast.error("Necesitas hacer un depósito inicial antes de jugar");
       return;
     }
-
+  
     try {
       setIsBetting(true);
       setMessage("Preparando tu apuesta...");
-
+      setGameResult(null); // Limpiar explícitamente cualquier resultado anterior
+  
       // Verificar que la apuesta es válida
       if (parseFloat(betAmount) <= 0) {
         throw new Error("La cantidad apostada debe ser mayor que 0");
       }
-
+  
       if (parseFloat(betAmount) > parseFloat(maxBetAmount)) {
         throw new Error(`La apuesta máxima permitida es ${maxBetAmount} ETH`);
       }
-
+  
       // Verificar y registrar el certificado del jugador
       const isCertificateValid = await checkAndRegisterCertificate(
         userName,
@@ -201,11 +201,11 @@ const Game = () => {
           "No se pudo verificar o registrar tu certificado. Intenta de nuevo."
         );
       }
-
+  
       // Iniciar el juego después de verificar los requisitos
       dealInitialCardsHandler();
       setGameState("playing");
-      setShowBetModal(false); // Cerrar el modal de apuesta si está abierto
+      setShowBetModal(false);
       setMessage(null);
     } catch (error) {
       console.error("Error al realizar la apuesta:", error);
@@ -377,9 +377,16 @@ const handleUnpaidGame = async () => {
   
 
   // Función para manejar nueva apuesta
-  const handleNewBet = () => {
-    setShowBetModal(true);
-  };
+const handleNewBet = () => {
+  // Limpiar estados de la partida anterior
+  setGameResult(null);
+  setPlayerCards({ cards: [] });
+  setDealerCards({ cards: [] });
+  setMessage(null);
+  
+  // Mostrar el modal de apuesta
+  setShowBetModal(true);
+};
 
   // Función para gestionar depósitos
   const handleManageDeposits = () => {
@@ -625,21 +632,24 @@ const handleUnpaidGame = async () => {
       )}
 
       {/* Modal para Gestionar Depósitos */}
-      {showDepositModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
-          <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-white">Gestionar Depósitos</h2>
-              <button onClick={() => setShowDepositModal(false)} className="text-gray-400 hover:text-white">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
-                </svg>
-              </button>
-            </div>
-            <Depositos onDepositComplete={handleDepositComplete} />
-          </div>
-        </div>
-      )}
+{showDepositModal && (
+  <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
+    <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+      <div className="flex justify-between items-center mb-4 flex-shrink-0">
+        <h2 className="text-xl font-bold text-white">Gestionar Depósitos</h2>
+        <button onClick={() => setShowDepositModal(false)} className="text-gray-400 hover:text-white">
+          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <div className="overflow-y-auto flex-grow pr-1 custom-scrollbar">
+        <Depositos onDepositComplete={handleDepositComplete} />
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

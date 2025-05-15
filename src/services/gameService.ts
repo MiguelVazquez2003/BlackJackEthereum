@@ -2,17 +2,25 @@ import { ICard, IHand } from "../types";
 import { BLACKJACK } from "../utils/constants";
 
 // Convertir resultado del juego al formato del contrato
+// Convertir resultado del juego al formato del contrato
 export function getGameResult(
   playerScore: number,
   dealerScore: number
 ): number {
-
-    console.log("Resultado del juego: ", playerScore, dealerScore);
-
+  console.log("Resultado del juego: ", playerScore, dealerScore);
 
   // Si el jugador se pasó de 21, pierde
   if (playerScore > BLACKJACK) {
     return -1;
+  }
+
+  // Si el jugador tiene exactamente 21 (Blackjack), gana automáticamente
+  // a menos que el dealer también tenga 21 (empate)
+  if (playerScore === BLACKJACK) {
+    if (dealerScore === BLACKJACK) {
+      return 0; // Empate si ambos tienen Blackjack
+    }
+    return 1; // Jugador gana con Blackjack
   }
 
   // Si el dealer se pasó de 21, el jugador gana
@@ -106,6 +114,8 @@ export function handleDealerTurn(
   let result: string;
   if (playerTotal > 21) {
     result = "¡Te has pasado! Pierdes.";
+  } else if (playerTotal === 21) {
+    result = dealerTotal === 21 ? "Empate." : "¡Blackjack! Ganas.";
   } else if (dealerTotal > 21) {
     result = "¡El dealer se pasó! Ganas.";
   } else if (playerTotal === dealerTotal) {

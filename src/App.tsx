@@ -15,6 +15,7 @@ import { isAuthenticated } from "./utils/sessionUtils";
 import Inicio from "./pages/inicio";
 import { JSX, useState } from "react";
 import { Sidebar } from "./components/Sidebar";
+import BalancePage from "./pages/balance";
 
 
 
@@ -41,6 +42,7 @@ function App() {
           <Sidebar />
         }
         <div className={`w-full ${auth ? 'ml-64' : ''}`}>
+
           <Routes>
             <Route path="/" element={<Inicio />} />
             <Route path="/login" element={<Login setAuth={setAuth}/>} />
@@ -74,6 +76,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <StatsPlayer />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/balance"
+              element={
+                <ProtectedRoute>
+                  <BalancePage />
                 </ProtectedRoute>
               }
             />
