@@ -10,7 +10,7 @@ declare global {
 }
 
 // Dirección del contrato en la red de prueba Sepolia
-export const BLACKJACK_CONTRACT_ADDRESS = import.meta.env.VITE_BLACKJACK_CONTRACT_ADDRESS;
+export const BLACKJACK_CONTRACT_ADDRESS = "0x8Eefd2eA6996F7653D9b27cBE473B2aA133ce1fa";
 
 // ABI del contrato Blackjack
 export const BLACKJACK_ABI = [

@@ -1,7 +1,7 @@
 // src/components/Sign.tsx
 
 import { useState } from 'react';
-import { useMetaMask } from '../hooks/useMetaMask'; // Assuming you have a MetaMask hook
+import { useMetaMask } from '../hooks/useMetaMask';
 
 const Sign = ({ data }: { data: string }) => {
   const { signer } = useMetaMask();
