@@ -144,7 +144,7 @@ const BalancePage = () => {
             <p className="text-gray-200 text-center">Conecta tu wallet para ver tu balance</p>
             <button
               onClick={() => connect()}
-              className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 text-white font-semibold rounded-md transition text-sm md:text-base"
+              className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
             >
               Conectar MetaMask
             </button>
@@ -182,10 +182,10 @@ const BalancePage = () => {
                 <button
                   onClick={handleWithdraw}
                   disabled={isWithdrawing || parseFloat(stats.initialDeposit) <= 0 || stats.hasPendingDebt}
-                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors  ${
                     isWithdrawing || parseFloat(stats.initialDeposit) <= 0 || stats.hasPendingDebt
                       ? "bg-gray-600 cursor-not-allowed"
-                      : "bg-red-700 hover:bg-red-800 text-white"
+                      : "bg-red-700 hover:bg-red-800 text-white hover:cursor-pointer"
                   }`}
                 >
                   {isWithdrawing ? (
@@ -262,14 +262,14 @@ const BalancePage = () => {
             <div className="flex justify-center gap-4 mt-6">
               <button
                 onClick={() => navigate("/game")}
-                className="py-2 px-6 md:py-3 md:px-8 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-md transition text-sm md:text-base"
+                className="py-2 px-6 md:py-3 md:px-8 bg-green-700 hover:bg-green-800 hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
               >
                 Ir al juego
               </button>
               
               <button
                 onClick={() => navigate("/stats")}
-                className="py-2 px-6 md:py-3 md:px-8 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-md transition text-sm md:text-base"
+                className="py-2 px-6 md:py-3 md:px-8 bg-blue-700 hover:bg-blue-800 hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
               >
                 Ver estadísticas
               </button>
@@ -288,7 +288,7 @@ const BalancePage = () => {
             <p className="text-gray-200 text-xl mb-6">No se encontraron datos de balance para tu cuenta</p>
             <button
               onClick={() => navigate("/game")}
-              className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 text-white font-semibold rounded-md transition text-sm md:text-base"
+              className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
             >
               Jugar ahora
             </button>

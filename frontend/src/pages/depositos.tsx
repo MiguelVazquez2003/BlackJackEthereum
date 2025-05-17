@@ -32,8 +32,7 @@ const Depositos: React.FC<DepositosProps> = ({ onDepositComplete }) => {
           setCurrentDeposit(stats.initialDeposit);
           setDepositTimestamp(stats.depositTimestamp);
           
-          // Simular algunos depósitos históricos para la demostración
-          // En una implementación real, estos vendrían de eventos en el contrato
+          
           if (parseFloat(stats.initialDeposit) > 0) {
             const currentDepositHistory: DepositHistory = {
               amount: stats.initialDeposit,
@@ -144,7 +143,7 @@ const Depositos: React.FC<DepositosProps> = ({ onDepositComplete }) => {
   };
 
   return (
-    <div className="flex flex-col items-center gap-4 w-full">
+    <div className="flex flex-col items-center gap-4 w-full ">
       {!account ? (
         <button
           onClick={() => connect()}

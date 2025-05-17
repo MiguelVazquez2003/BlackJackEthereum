@@ -333,14 +333,14 @@ const StatsPlayer = () => {
             <div className="flex justify-center gap-4 mt-6">
               <button
                 onClick={() => navigate("/game")}
-                className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 text-white font-semibold rounded-md transition text-sm md:text-base"
+                className="py-2 px-6 md:py-3 md:px-8 bg-red-900 hover:bg-red-950  hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
               >
                 Volver al juego
               </button>
               
               <button
                 onClick={() => navigate("/balance")}
-                className="py-2 px-6 md:py-3 md:px-8 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-md transition text-sm md:text-base"
+                className="py-2 px-6 md:py-3 md:px-8 bg-green-700 hover:bg-green-800 hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
               >
                 Ver mi balance
               </button>
@@ -359,7 +359,7 @@ const StatsPlayer = () => {
             <p className="text-gray-200 text-xl mb-6">No se encontraron estadísticas para tu cuenta</p>
             <button
               onClick={() => navigate("/game")}
-              className="py-2 px-6 md:py-3 md:px-8 bg-red-950 hover:bg-red-900 text-white font-semibold rounded-md transition text-sm md:text-base"
+              className="py-2 px-6 md:py-3 md:px-8 bg-red-900 hover:bg-red-950  hover:cursor-pointer text-white font-semibold rounded-md transition text-sm md:text-base"
             >
               Jugar ahora
             </button>

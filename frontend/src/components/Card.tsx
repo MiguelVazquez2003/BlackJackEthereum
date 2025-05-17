@@ -17,7 +17,6 @@ export default function Card(card: CardProps) {
     }
 
     const position = getPosition(card.rank, card.suit)
-    console.log(`backgroundPosition: ${position.x*100}% ${position.y*100}%`)
 
     const scale = 0.5;
     const root = document.querySelector(":root") as HTMLElement

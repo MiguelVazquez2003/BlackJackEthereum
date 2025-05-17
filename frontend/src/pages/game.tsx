@@ -596,7 +596,7 @@ const handleNewBet = () => {
                 className={`py-2 px-4 rounded-lg font-medium transition-colors ${
                   isProcessing || hasDebt || parseFloat(initialDeposit) <= 0
                     ? "bg-gray-600 cursor-not-allowed"
-                    : "bg-green-600 hover:bg-green-700 text-white"
+                    : "bg-green-600 hover:bg-green-700 hover:cursor-pointer text-white"
                 }`}
               >
                 Nueva Apuesta
@@ -605,7 +605,7 @@ const handleNewBet = () => {
               <button
                 onClick={handleManageDeposits}
                 disabled={isProcessing}
-                className="py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg font-medium"
+                className="py-2 px-4 bg-yellow-600 hover:bg-yellow-700 hover:cursor-pointer text-white rounded-lg font-medium"
               >
                 Gestionar Depósitos
               </button>
@@ -633,8 +633,8 @@ const handleNewBet = () => {
 
       {/* Modal para Gestionar Depósitos */}
 {showDepositModal && (
-  <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50">
-    <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+  <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 ">
+    <div className="bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col ">
       <div className="flex justify-between items-center mb-4 flex-shrink-0">
         <h2 className="text-xl font-bold text-white">Gestionar Depósitos</h2>
         <button onClick={() => setShowDepositModal(false)} className="text-gray-400 hover:text-white">
@@ -644,7 +644,7 @@ const handleNewBet = () => {
         </button>
       </div>
       
-      <div className="overflow-y-auto flex-grow pr-1 custom-scrollbar">
+      <div className="overflow-y-scroll flex-grow pr-1 custom-scrollbar" style={{scrollbarWidth:"thin"}}>
         <Depositos onDepositComplete={handleDepositComplete} />
       </div>
     </div>
